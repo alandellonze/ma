@@ -1,0 +1,60 @@
+# server
+server:
+  port: 8080
+
+# spring
+spring:
+  application:
+    name: ma-api
+
+  # spring database
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://localhost:5432/ma3?autoReconnect=true
+    username: ade
+    password:
+
+  # spring JPA properties
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      naming.physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show-sql: false
+        format_sql: true
+
+  # spring flyway
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+    baseline-on-migrate: true
+    table: flyway_schema_version
+
+  # spring mail
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: sender@techgap.it
+    password: 2012sender
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls.enable: true
+
+# logging
+logging:
+  level:
+    org.springframework.web: ERROR
+    org.hibernate: ERROR
+
+# mail
+mail:
+  from: ma@noreply.com
+  fromName: ma
+  to: alan.dellonze@gmail.com
+
+# ma discography
+ma.url: https://www.metal-archives.com/band/discography/id/%s/tab/all
