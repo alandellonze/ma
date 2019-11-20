@@ -71,19 +71,31 @@ public class Album {
 
     @Override
     public String toString() {
-        StringBuilder name = new StringBuilder(String.format("%03d", position)).append(" ");
-        if (type != null) {
-            name.append(type);
+        StringBuilder toString = new StringBuilder(String.format("%03d", position)).append(" ");
+
+        if (maType != null) {
+            toString.append(maType).append("*");
+        } else if (type != null) {
+            toString.append(type);
         }
-        if (typeCount != null) {
-            name.append(String.format("%02d", typeCount));
+
+        if (maTypeCount != null) {
+            toString.append(String.format("%02d", maTypeCount)).append("*");
+        } else if (typeCount != null) {
+            toString.append(String.format("%02d", typeCount));
         }
-        name.append(" - ");
-        if (name != null) {
-            name.append(name);
+
+        toString.append(" - ");
+
+        if (maName != null) {
+            toString.append(maName).append("*");
+        } else if (name != null) {
+            toString.append(name);
         }
-        name.append(" (").append(year).append(")");
-        return name.toString();
+
+        toString.append(" (").append(year).append(")");
+
+        return toString.toString();
     }
 
 }

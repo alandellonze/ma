@@ -3,9 +3,11 @@ package it.ade.ma.api.sevice;
 import it.ade.ma.api.model.Album;
 import it.ade.ma.api.model.Band;
 import it.ade.ma.api.model.dto.AlbumDiff;
+import it.ade.ma.api.model.dto.AlbumDiff.DiffType;
 import it.ade.ma.api.model.dto.DiscographyResult;
 import it.ade.ma.api.util.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +15,9 @@ import java.util.List;
 
 @Service
 public class NotificationService {
+
+    @Value("${ma.url}")
+    private String maUrl;
 
     @Autowired
     private MailService mailService;
@@ -35,128 +40,197 @@ public class NotificationService {
     }
 
     private String prepareText(Band band, List<AlbumDiff> albumDiffs) {
-        StringBuilder document = new StringBuilder("<table cellspacing='0' cellpadding='3' style='font-size: 12px; border: 1px SOLID #AAAAAA;'>");
+        StringBuilder document = new StringBuilder();
 
-        document.append("<tr style='font-weight: bold;'>")
-                .append("<td>")
-                .append("</td>")
-                .append("<td>")
-                .append(band.getName())
-                .append("</td>")
-                .append("<td>")
-                .append("changes")
-                .append("</td>")
-                .append("</tr>");
+        document.append("<table cellspacing='0' cellpadding='5' style='font-size: 12px; border-bottom: 1px SOLID #AAAAAA;'>");
 
         for (AlbumDiff albumDiff : albumDiffs) {
             switch (albumDiff.getType()) {
                 case EQUAL:
-                    for (Album album : albumDiff.getOriginal()) {
-                        document.append("<tr>")
-                                .append("<td>")
-                                .append(generatePosition(album))
-                                .append("</td>")
-                                .append("<td>")
-                                .append(generateName(album))
-                                .append("</td>")
-                                .append("<td>")
-                                .append("</td>")
-                                .append("</tr>");
+                    for (Album albumOriginal : albumDiff.getOriginal()) {
+                        document.append("<tr>");
+                        generateRows(document, albumDiff.getType(), albumOriginal, null);
+                        document.append("</tr>");
                     }
                     break;
 
                 case PLUS:
-                    for (Album album : albumDiff.getRevised()) {
-                        document.append("<tr style='background-color: lightgreen; color: white;'>")
-                                .append("<td>")
-                                .append("</td>")
-                                .append("<td>")
-                                .append("</td>")
-                                .append("<td>")
-                                .append(generateName(album))
-                                .append("</td>")
-                                .append("</tr>");
+                    for (Album albumRevised : albumDiff.getRevised()) {
+                        document.append("<tr style='background-color: #77FF77; color: #7777FF;'>");
+                        generateRows(document, albumDiff.getType(), null, albumRevised);
+                        document.append("</tr>");
                     }
                     break;
 
                 case MINUS:
-                    for (Album album : albumDiff.getOriginal()) {
-                        document.append("<tr style='background-color: lightcoral; color: white;'>")
-                                .append("<td>")
-                                .append(generatePosition(album))
-                                .append("</td>")
-                                .append("<td>")
-                                .append(generateName(album))
-                                .append("</td>")
-                                .append("<td>")
-                                .append("</td>")
-                                .append("</tr>");
+                    for (Album albumOriginal : albumDiff.getOriginal()) {
+                        document.append("<tr style='background-color: #FF7777; color: #FFFF77;'>");
+                        generateRows(document, albumDiff.getType(), albumOriginal, null);
+                        document.append("</tr>");
                     }
                     break;
 
                 case CHANGE:
-                    document.append("<tr style='background-color: lightgoldenrodyellow; color: brown;'>");
-
                     int i = 0;
                     for (; i < albumDiff.getOriginal().size(); i++) {
                         Album albumOriginal = albumDiff.getOriginal().get(i);
                         Album albumRevised = (i < albumDiff.getRevised().size()) ? albumDiff.getRevised().get(i) : null;
 
-                        document.append("<td>")
-                                .append(generatePosition(albumOriginal))
-                                .append("</td>")
-                                .append("<td>")
-                                .append(generateName(albumOriginal))
-                                .append("</td>")
-                                .append("<td>");
-                        if (albumRevised != null) {
-                            document.append(generateName(albumRevised));
-                        }
-                        document.append("</td>");
+                        document.append("<tr style='background-color: #EEECC0; color: #555555;'>");
+                        generateRows(document, albumDiff.getType(), albumOriginal, albumRevised);
+                        document.append("<tr>");
                     }
 
                     if (albumDiff.getRevised().size() < i) {
                         for (; i < albumDiff.getRevised().size(); i++) {
                             Album albumRevised = albumDiff.getRevised().get(i);
 
-                            document.append("<td>")
-                                    .append("</td>")
-                                    .append("<td>")
-                                    .append("</td>")
-                                    .append("<td>")
-                                    .append(generateName(albumRevised))
-                                    .append("</td>");
+                            document.append("<tr style='background-color: #EEECC0; color: #555555;'>");
+                            generateRows(document, albumDiff.getType(), null, albumRevised);
+                            document.append("<tr>");
                         }
                     }
-
-                    document.append("</tr>");
                     break;
             }
         }
 
         document.append("</table>");
 
+        // add original source
+        String url = String.format(maUrl, band.getMaKey());
+        document.append("<br />").append("<b>source</b>: ").append(url);
+
         return document.toString();
     }
 
-    private StringBuilder generatePosition(Album album) {
-        return new StringBuilder(String.format("%03d", album.getPosition()));
+    private void generateRows(StringBuilder document, DiffType diffType, Album albumOriginal, Album albumRevised) {
+        generateDiffType(document, diffType);
+
+        if (albumOriginal != null) {
+            generatePosition(document, albumOriginal);
+            generateType(document, albumOriginal);
+            generateTypeCount(document, albumOriginal);
+            generateName(document, albumOriginal);
+            generateYear(document, albumOriginal);
+            generateStatus(document, albumOriginal);
+        } else {
+            generateTd(document, true);
+            generateTd(document, true);
+            generateTd(document, true);
+            generateTd(document, true);
+            generateTd(document, true);
+            generateTd(document, true);
+        }
+
+        if (albumRevised != null) {
+            generateType(document, albumRevised);
+            generateTypeCount(document, albumRevised);
+            generateName(document, albumRevised);
+            generateYear(document, albumRevised);
+        } else {
+            generateTd(document, true);
+            generateTd(document, true);
+            generateTd(document, true);
+            generateTd(document, true);
+        }
     }
 
-    private StringBuilder generateName(Album album) {
-        StringBuilder name = new StringBuilder();
-        if (album.getType() != null) {
-            name.append(album.getType());
+    private void generateDiffType(StringBuilder document, DiffType diffType) {
+        document.append("<td style='border-top: 1px SOLID #AAAAAA;'>");
+
+        switch (diffType) {
+            case PLUS:
+                document.append("+");
+                break;
+
+            case MINUS:
+                document.append("-");
+                break;
+
+            case CHANGE:
+                document.append(">");
+                break;
         }
-        if (album.getTypeCount() != null) {
-            name.append(String.format("%02d", album.getTypeCount()));
+
+        document.append("</td>");
+    }
+
+    private void generatePosition(StringBuilder document, Album album) {
+        generateTd(document);
+        document.append(album.getPosition())
+                .append("</td>");
+    }
+
+    private void generateType(StringBuilder document, Album album) {
+        generateTd(document);
+        if (album.getMaType() != null) {
+            document.append("<i>").append(album.getMaType()).append("</i>");
+        } else if (album.getType() != null) {
+            document.append(album.getType());
         }
-        name.append(" - ");
-        if (album.getName() != null) {
-            name.append(album.getName());
+        document.append("</td>");
+    }
+
+    private void generateTypeCount(StringBuilder document, Album album) {
+        generateTd(document);
+        if (album.getMaTypeCount() != null) {
+            document.append("<i>").append(String.format("%02d", album.getMaTypeCount())).append("</i>");
+        } else if (album.getTypeCount() != null) {
+            document.append(String.format("%02d", album.getTypeCount()));
         }
-        name.append(" (").append(album.getYear()).append(")");
-        return name;
+        document.append("</td>");
+    }
+
+    private void generateName(StringBuilder document, Album album) {
+        generateTd(document);
+        if (album.getMaName() != null) {
+            document.append("<i>").append(album.getMaName()).append("</i>");
+        } else if (album.getName() != null) {
+            document.append(album.getName());
+        }
+        document.append("</td>");
+    }
+
+    private void generateYear(StringBuilder document, Album album) {
+        generateTd(document);
+        document.append(album.getYear())
+                .append("</td>");
+    }
+
+    private void generateStatus(StringBuilder document, Album album) {
+        String status;
+        switch (album.getStatus()) {
+            case NONE:
+                status = "?";
+                break;
+
+            case MISSED:
+                status = "x";
+                break;
+
+            case PRESENT:
+            case PRESENT_WITH_COVER:
+                status = "v";
+                break;
+
+            default:
+                status = "";
+        }
+
+        generateTd(document);
+        document.append(status)
+                .append("</td>");
+    }
+
+    private void generateTd(StringBuilder document) {
+        generateTd(document, false);
+    }
+
+    private void generateTd(StringBuilder document, boolean withClosure) {
+        document.append("<td style='border-left: 1px SOLID #AAAAAA; border-top: 1px SOLID #AAAAAA;'>");
+        if (withClosure) {
+            document.append("</td>");
+        }
     }
 
 }
