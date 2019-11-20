@@ -55,7 +55,7 @@ public class RipperService {
             Integer year = Integer.parseInt(webPageAlbum.getYear());
 
             // add to the list
-            albums.add(new Album(null, null, (i + 1), type, typeCount, name, year));
+            albums.add(new Album((i + 1), type, typeCount, name, year));
         }
 
         return albums;

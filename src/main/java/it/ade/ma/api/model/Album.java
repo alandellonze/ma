@@ -1,6 +1,5 @@
 package it.ade.ma.api.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,8 +8,24 @@ import javax.persistence.*;
 @Data
 @Entity
 @NoArgsConstructor
-@AllArgsConstructor
 public class Album {
+
+    public enum AlbumStatus {
+        MISSED(-1),
+        NONE(0),
+        PRESENT(1),
+        PRESENT_WITH_COVER(2);
+
+        private final int value;
+
+        AlbumStatus(final int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +40,21 @@ public class Album {
     private Integer typeCount;
     private String name;
     private Integer year;
+
+    @Enumerated
+    private AlbumStatus status = AlbumStatus.NONE;
+
+    private String maType;
+    private Integer maTypeCount;
+    private String maName;
+
+    public Album(Integer position, String type, Integer typeCount, String name, Integer year) {
+        this.position = position;
+        this.type = type;
+        this.typeCount = typeCount;
+        this.name = name;
+        this.year = year;
+    }
 
     @Override
     public boolean equals(Object o) {
