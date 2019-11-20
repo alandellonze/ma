@@ -16,6 +16,17 @@ public class DiscographyController {
     @Autowired
     private DiscographyService discographyService;
 
+    @GetMapping()
+    public ResponseEntity testAll() {
+        try {
+            discographyService.executeAll();
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @GetMapping("/{bandName}")
     public ResponseEntity test(@PathVariable String bandName) {
         try {

@@ -31,6 +31,11 @@ public class DiscographyService {
     @Autowired
     private NotificationService notificationService;
 
+    public void executeAll() {
+        List<Band> bands = bandRepository.findAllByMaKeyNotNullOrderByName();
+        bands.forEach(band -> execute(band.getName()));
+    }
+
     public DiscographyResult execute(String bandName) {
         DiscographyResult discographyResult = null;
         try {
