@@ -11,20 +11,10 @@ import javax.persistence.*;
 public class Album {
 
     public enum AlbumStatus {
-        MISSED(-1),
-        NONE(0),
-        PRESENT(1),
-        PRESENT_WITH_COVER(2);
-
-        private final int value;
-
-        AlbumStatus(final int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
+        NONE,
+        MISSED,
+        PRESENT,
+        PRESENT_WITH_COVER;
     }
 
     @Id
@@ -63,29 +53,37 @@ public class Album {
 
         Album album = (Album) o;
 
-        if (!type.equals(album.type)) return false;
-        if (!typeCount.equals(album.typeCount)) return false;
-        if (!name.equals(album.name)) return false;
+        if (type != null ? !type.equals(album.type) : album.type != null) return false;
+        if (typeCount != null ? !typeCount.equals(album.typeCount) : album.typeCount != null) return false;
+        if (name != null ? !name.equals(album.name) : album.name != null) return false;
         return year.equals(album.year);
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + type.hashCode();
-        result = 31 * result + typeCount.hashCode();
-        result = 31 * result + name.hashCode();
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (typeCount != null ? typeCount.hashCode() : 0);
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + year.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return new StringBuilder(String.format("%03d", position)).append(" ")
-                .append(type).append(String.format("%02d", typeCount)).append(" - ")
-                .append(name)
-                .append(" (").append(year).append(")")
-                .toString();
+        StringBuilder name = new StringBuilder(String.format("%03d", position)).append(" ");
+        if (type != null) {
+            name.append(type);
+        }
+        if (typeCount != null) {
+            name.append(String.format("%02d", typeCount));
+        }
+        name.append(" - ");
+        if (name != null) {
+            name.append(name);
+        }
+        name.append(" (").append(year).append(")");
+        return name.toString();
     }
 
 }

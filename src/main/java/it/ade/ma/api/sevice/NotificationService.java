@@ -144,7 +144,19 @@ public class NotificationService {
     }
 
     private StringBuilder generateName(Album album) {
-        return new StringBuilder(album.getType()).append(String.format("%02d", album.getTypeCount())).append(" - ").append(album.getName()).append(" (").append(album.getYear()).append(")");
+        StringBuilder name = new StringBuilder();
+        if (album.getType() != null) {
+            name.append(album.getType());
+        }
+        if (album.getTypeCount() != null) {
+            name.append(String.format("%02d", album.getTypeCount()));
+        }
+        name.append(" - ");
+        if (album.getName() != null) {
+            name.append(album.getName());
+        }
+        name.append(" (").append(album.getYear()).append(")");
+        return name;
     }
 
 }

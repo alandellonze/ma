@@ -19,9 +19,9 @@ INSERT INTO album(band_id, "position", type, typecount, name, year, status, maTy
     (SELECT
        band_name,
        position,
-       CASE WHEN mp3_cover = 1 THEN 2
-       WHEN i_have = 1 THEN 1
-       WHEN i_miss = 1 THEN -1
+       CASE WHEN mp3_cover = 1 THEN 3
+       WHEN i_have = 1 THEN 2
+       WHEN i_miss = 1 THEN 1
        ELSE 0
        END AS status,
        album_name AS original,
