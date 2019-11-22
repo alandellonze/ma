@@ -34,15 +34,10 @@ spring:
 
   # spring mail
   mail:
-    host: smtp.gmail.com
+    host: smtp.mailgun.org
     port: 587
-    username: sender@techgap.it
-    password: 2012sender
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls.enable: true
+    username: postmaster@sandbox8ef10d5c5b5f462baeef1d00943fa340.mailgun.org
+    password: eea9efd51d6a37a8cf34a55051cca2db-09001d55-515ff747
 
 # logging
 logging:
@@ -52,7 +47,7 @@ logging:
 
 # mail
 mail:
-  from: ma@noreply.com
+  from: postmaster@sandbox8ef10d5c5b5f462baeef1d00943fa340.mailgun.org
   fromName: ma
   to: alan.dellonze@gmail.com
 
