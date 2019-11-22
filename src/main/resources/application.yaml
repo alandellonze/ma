@@ -48,7 +48,7 @@ logging:
 # mail
 mail:
   from: postmaster@sandbox8ef10d5c5b5f462baeef1d00943fa340.mailgun.org
-  fromName: ma
+  fromName: Metal Archives
   to: alan.dellonze@gmail.com
 
 # ma discography

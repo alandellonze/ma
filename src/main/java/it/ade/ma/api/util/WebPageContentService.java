@@ -32,12 +32,16 @@ public class WebPageContentService {
         // group tds 4 by 4
         for (int i = 0; i < tdsHtmlContent.size(); i = i + 4) {
             String type = tdsHtmlContent.get(i + 1);
-            String name = Jsoup.parse(tdsHtmlContent.get(i)).select("a").html();
+            String name = normalizeHtml(Jsoup.parse(tdsHtmlContent.get(i)).select("a").html());
             String year = tdsHtmlContent.get(i + 2);
             webPageAlbums.add(new WebPageAlbum(type, name, year));
         }
 
         return webPageAlbums;
+    }
+
+    private String normalizeHtml(String html) {
+        return html.replaceAll("&amp;", "&");
     }
 
 }

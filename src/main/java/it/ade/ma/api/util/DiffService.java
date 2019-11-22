@@ -8,23 +8,23 @@ import com.google.common.collect.Lists;
 import it.ade.ma.api.model.Album;
 import it.ade.ma.api.model.dto.AlbumDiff;
 import it.ade.ma.api.model.dto.AlbumDiff.DiffType;
+import it.ade.ma.api.model.dto.DiscographyResult;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class DiffService {
 
-    public List<AlbumDiff> execute(List<Album> original, List<Album> revised) throws DiffException {
-        List<AlbumDiff> albumDiffs = new ArrayList<>();
+    public DiscographyResult execute(List<Album> original, List<Album> revised) throws DiffException {
+        DiscographyResult discographyResult = new DiscographyResult();
 
         Patch<Album> patch = DiffUtils.diff(original, revised);
         List<AbstractDelta<Album>> deltas = patch.getDeltas();
 
         // if there are no differences
         if (deltas.size() == 0) {
-            equalAction(albumDiffs, original);
+            equalAction(discographyResult, original);
         }
 
         // otherwise, if there are differences
@@ -33,15 +33,15 @@ public class DiffService {
             AbstractDelta currentDelta = deltas.remove(0);
             Integer currentPosition = currentDelta.getSource().getPosition();
             if (currentPosition > 0) {
-                equalAction(albumDiffs, original.subList(0, currentPosition));
-                getDeltaTextCustom(albumDiffs, currentDelta);
+                equalAction(discographyResult, original.subList(0, currentPosition));
+                getDeltaTextCustom(discographyResult, currentDelta);
             }
 
             // add the diff items
             for (AbstractDelta nextDelta : deltas) {
                 int intermediateStart = currentPosition + currentDelta.getSource().getLines().size();
-                equalAction(albumDiffs, original.subList(intermediateStart, nextDelta.getSource().getPosition()));
-                getDeltaTextCustom(albumDiffs, nextDelta);
+                equalAction(discographyResult, original.subList(intermediateStart, nextDelta.getSource().getPosition()));
+                getDeltaTextCustom(discographyResult, nextDelta);
 
                 currentDelta = nextDelta;
                 currentPosition = nextDelta.getSource().getPosition();
@@ -50,52 +50,64 @@ public class DiffService {
             // add the last not diff items
             int lastStart = currentPosition + currentDelta.getSource().getLines().size();
             if (lastStart < original.size()) {
-                equalAction(albumDiffs, original.subList(lastStart, original.size()));
+                equalAction(discographyResult, original.subList(lastStart, original.size()));
             }
         }
 
-        return albumDiffs;
+        System.out.println("Changes found: " + discographyResult.getChanges());
+        return discographyResult;
     }
 
-    private void getDeltaTextCustom(List<AlbumDiff> albumDiffs, AbstractDelta delta) {
+    private void getDeltaTextCustom(DiscographyResult discographyResult, AbstractDelta delta) {
         // plus
         if (delta.getSource().getLines().size() == 0 && delta.getTarget().getLines().size() > 0) {
-            plusAction(albumDiffs, delta.getTarget().getLines());
+            plusAction(discographyResult, delta.getTarget().getLines());
         }
 
         // minus
         else if (delta.getSource().getLines().size() > 0 && delta.getTarget().getLines().size() == 0) {
-            minusAction(albumDiffs, delta.getSource().getLines());
+            minusAction(discographyResult, delta.getSource().getLines());
         }
 
         // change
         else if (delta.getSource().getLines().size() > 0 && delta.getTarget().getLines().size() > 0) {
-            changeAction(albumDiffs, delta.getSource().getLines(), delta.getTarget().getLines());
+            changeAction(discographyResult, delta.getSource().getLines(), delta.getTarget().getLines());
         }
     }
 
-    private void equalAction(List<AlbumDiff> albumDiffs, List<Album> original) {
+    private void equalAction(DiscographyResult discographyResult, List<Album> original) {
+        List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
         for (Album album : original) {
             System.out.println("  " + album);
             albumDiffs.add(new AlbumDiff(DiffType.EQUAL, Lists.newArrayList(album), null));
         }
     }
 
-    private void plusAction(List<AlbumDiff> albumDiffs, List<Album> revised) {
+    private void plusAction(DiscographyResult discographyResult, List<Album> revised) {
+        List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
         for (Album album : revised) {
             System.out.println("+ " + album);
             albumDiffs.add(new AlbumDiff(DiffType.PLUS, null, Lists.newArrayList(album)));
+            incrementCount(discographyResult, 1);
         }
     }
 
-    private void minusAction(List<AlbumDiff> albumDiffs, List<Album> original) {
+    private void minusAction(DiscographyResult discographyResult, List<Album> original) {
+        List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
         for (Album album : original) {
-            System.out.println("- " + album);
-            albumDiffs.add(new AlbumDiff(DiffType.MINUS, Lists.newArrayList(album), null));
+            if (album.isFullyCustom()) {
+                System.out.println("  " + album);
+                albumDiffs.add(new AlbumDiff(DiffType.EQUAL, Lists.newArrayList(album), null));
+            } else {
+                System.out.println("- " + album);
+                albumDiffs.add(new AlbumDiff(DiffType.MINUS, Lists.newArrayList(album), null));
+                incrementCount(discographyResult, 1);
+            }
         }
     }
 
-    private void changeAction(List<AlbumDiff> albumDiffs, List<Album> original, List<Album> revised) {
+    private void changeAction(DiscographyResult discographyResult, List<Album> original, List<Album> revised) {
+        List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
         for (Album line : original) {
             System.out.println("> " + line);
         }
@@ -103,6 +115,11 @@ public class DiffService {
             System.out.println("< " + line);
         }
         albumDiffs.add(new AlbumDiff(DiffType.CHANGE, original, revised));
+        incrementCount(discographyResult, Math.max(original.size(), revised.size()));
+    }
+
+    private void incrementCount(DiscographyResult discographyResult, Integer value) {
+        discographyResult.setChanges(discographyResult.getChanges() + value);
     }
 
 }

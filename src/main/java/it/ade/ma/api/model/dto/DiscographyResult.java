@@ -1,16 +1,18 @@
 package it.ade.ma.api.model.dto;
 
+import com.google.common.collect.Lists;
 import it.ade.ma.api.model.Band;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
-@AllArgsConstructor
+@NoArgsConstructor
 public class DiscographyResult {
 
     Band band;
-    List<AlbumDiff> albumDiffs;
+    Integer changes = 0;
+    List<AlbumDiff> albumDiffs = Lists.newArrayList();
 
 }

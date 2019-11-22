@@ -24,18 +24,20 @@ public class NotificationService {
 
     @Async
     public void execute(DiscographyResult discographyResult) {
-        Band band = discographyResult.getBand();
-        List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
+        if (discographyResult.getChanges() > 0) {
+            Band band = discographyResult.getBand();
+            List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
 
-        String subject = prepareSubject(band, albumDiffs);
-        String text = prepareText(band, albumDiffs);
+            String subject = prepareSubject(band, discographyResult.getChanges());
+            String text = prepareText(band, albumDiffs);
 
-        mailService.sendEmail(subject, text);
+            mailService.sendEmail(subject, text);
+        }
     }
 
-    private String prepareSubject(Band band, List<AlbumDiff> albumDiffs) {
+    private String prepareSubject(Band band, Integer changes) {
         StringBuilder subject = new StringBuilder(band.getName())
-                .append(" (").append(albumDiffs.size()).append(" differences)");
+                .append(" (").append(changes).append(" differences)");
         return subject.toString();
     }
 
@@ -81,14 +83,12 @@ public class NotificationService {
                         document.append("<tr>");
                     }
 
-                    if (albumDiff.getRevised().size() < i) {
-                        for (; i < albumDiff.getRevised().size(); i++) {
-                            Album albumRevised = albumDiff.getRevised().get(i);
+                    for (; i < albumDiff.getRevised().size(); i++) {
+                        Album albumRevised = albumDiff.getRevised().get(i);
 
-                            document.append("<tr style='background-color: #EEECC0; color: #555555;'>");
-                            generateRows(document, albumDiff.getType(), null, albumRevised);
-                            document.append("<tr>");
-                        }
+                        document.append("<tr style='background-color: #EEECC0; color: #555555;'>");
+                        generateRows(document, albumDiff.getType(), null, albumRevised);
+                        document.append("<tr>");
                     }
                     break;
             }

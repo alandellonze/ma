@@ -98,4 +98,8 @@ public class Album {
         return toString.toString();
     }
 
+    public boolean isFullyCustom() {
+        return type == null && typeCount == null && name == null;
+    }
+
 }

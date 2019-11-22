@@ -2,7 +2,6 @@ package it.ade.ma.api.sevice;
 
 import it.ade.ma.api.model.Album;
 import it.ade.ma.api.model.Band;
-import it.ade.ma.api.model.dto.AlbumDiff;
 import it.ade.ma.api.model.dto.DiscographyResult;
 import it.ade.ma.api.repository.AlbumRepository;
 import it.ade.ma.api.repository.BandRepository;
@@ -49,10 +48,10 @@ public class DiscographyService {
             List<Album> albumsFromWeb = ripperService.execute(band.getMaKey());
 
             // calculate differences
-            List<AlbumDiff> albumDiffs = diffService.execute(albumsFromDB, albumsFromWeb);
+            discographyResult = diffService.execute(albumsFromDB, albumsFromWeb);
 
-            // create result
-            discographyResult = new DiscographyResult(band, albumDiffs);
+            // add Band information
+            discographyResult.setBand(band);
 
             // notify
             notificationService.execute(discographyResult);
