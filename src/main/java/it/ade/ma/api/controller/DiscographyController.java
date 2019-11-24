@@ -4,10 +4,7 @@ import it.ade.ma.api.model.dto.DiscographyResult;
 import it.ade.ma.api.sevice.DiscographyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/discography")
@@ -17,7 +14,7 @@ public class DiscographyController {
     private DiscographyService discographyService;
 
     @GetMapping()
-    public ResponseEntity testAll() {
+    public ResponseEntity getDiscographys() {
         try {
             discographyService.executeAll();
             return ResponseEntity.ok().build();
@@ -28,9 +25,9 @@ public class DiscographyController {
     }
 
     @GetMapping("/{bandName}")
-    public ResponseEntity test(@PathVariable String bandName) {
+    public ResponseEntity getDiscography(@PathVariable String bandName, @RequestParam(defaultValue = "false") boolean sendNotification) {
         try {
-            DiscographyResult discographyResult = discographyService.execute(bandName);
+            DiscographyResult discographyResult = discographyService.execute(bandName, sendNotification);
             return ResponseEntity.ok(discographyResult);
         } catch (Exception e) {
             e.printStackTrace();

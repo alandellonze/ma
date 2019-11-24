@@ -32,29 +32,32 @@ public class DiscographyService {
 
     public void executeAll() {
         List<Band> bands = bandRepository.findAllByMaKeyNotNullOrderByName();
-        bands.forEach(band -> execute(band.getName()));
+        bands.forEach(band -> execute(band.getName(), true));
     }
 
-    public DiscographyResult execute(String bandName) {
+    public DiscographyResult execute(String bandName, boolean sendNotification) {
         DiscographyResult discographyResult = null;
         try {
             // get Band from db
             Band band = bandRepository.findOneByName(bandName);
+            if (band != null) {
+                // get Albums from db
+                List<Album> albumsFromDB = albumRepository.findAllByBandNameOrderByPositionAsc(band.getName());
 
-            // get Albums from db
-            List<Album> albumsFromDB = albumRepository.findAllByBandNameOrderByPositionAsc(band.getName());
+                // get Albums from web
+                List<Album> albumsFromWeb = ripperService.execute(band.getMaKey());
 
-            // get Albums from web
-            List<Album> albumsFromWeb = ripperService.execute(band.getMaKey());
+                // calculate differences
+                discographyResult = diffService.execute(albumsFromDB, albumsFromWeb);
 
-            // calculate differences
-            discographyResult = diffService.execute(albumsFromDB, albumsFromWeb);
+                // add Band information
+                discographyResult.setBand(band);
 
-            // add Band information
-            discographyResult.setBand(band);
-
-            // notify
-            notificationService.execute(discographyResult);
+                // notify
+                if (sendNotification) {
+                    notificationService.execute(discographyResult);
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
