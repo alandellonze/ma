@@ -2,6 +2,7 @@ package it.ade.ma.api.sevice;
 
 import it.ade.ma.api.model.Album;
 import it.ade.ma.api.model.Band;
+import it.ade.ma.api.model.dto.AlbumDiff;
 import it.ade.ma.api.model.dto.DiscographyResult;
 import it.ade.ma.api.repository.AlbumRepository;
 import it.ade.ma.api.repository.BandRepository;
@@ -62,6 +63,29 @@ public class DiscographyService {
             e.printStackTrace();
         }
         return discographyResult;
+    }
+
+    public boolean plus(Band band, AlbumDiff albumDiff) {
+        albumDiff.getRevised().stream().forEach(album -> {
+            album.setBand(band);
+            albumRepository.save(album);
+            // FIXME adjust position
+        });
+        return true;
+    }
+
+    public boolean change(Band band, AlbumDiff albumDiff) {
+        // FIXME to be implemented: change
+        System.out.println("change");
+        System.out.println(band);
+        System.out.println(albumDiff);
+        return true;
+    }
+
+    public boolean minus(Long albumId) {
+        albumRepository.deleteById(albumId);
+        // FIXME adjust position
+        return true;
     }
 
 }

@@ -38,26 +38,32 @@ public class DiscographyController {
 
     @PostMapping()
     public ResponseEntity plus(@RequestBody DiscographyItem discographyItem) {
-        // FIXME to be implemented: plus
-        System.out.println("plus");
-        System.out.println(discographyItem);
-        return ResponseEntity.ok().build();
+        boolean result = discographyService.plus(discographyItem.getBand(), discographyItem.getAlbumDiff());
+        if (result) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PutMapping()
     public ResponseEntity change(@RequestBody DiscographyItem discographyItem) {
-        // FIXME to be implemented: change
-        System.out.println("change");
-        System.out.println(discographyItem);
-        return ResponseEntity.ok().build();
+        boolean result = discographyService.change(discographyItem.getBand(), discographyItem.getAlbumDiff());
+        if (result) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/{albumId}")
     public ResponseEntity minus(@PathVariable Long albumId) {
-        // FIXME to be implemented: minus
-        System.out.println("minus");
-        System.out.println(albumId);
-        return ResponseEntity.ok().build();
+        boolean result = discographyService.minus(albumId);
+        if (result) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
 }
