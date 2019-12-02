@@ -77,15 +77,43 @@ public class DiscographyService {
 
             // adjust discography
             adjustDiscography(band.getName(), album.getPosition());
+            adjustDiscography(band.getName(), null);
         });
         return true;
     }
 
     public boolean change(Band band, AlbumDiff albumDiff) {
-        // FIXME to be implemented: change
-        System.out.println("change");
-        System.out.println(band);
-        System.out.println(albumDiff);
+        int i = 0;
+        for (; i < albumDiff.getOriginal().size(); i++) {
+            Album albumOriginal = albumDiff.getOriginal().get(i);
+            Album albumRevised = (i < albumDiff.getRevised().size()) ? albumDiff.getRevised().get(i) : null;
+
+            // minus
+            if (albumRevised == null) {
+                albumRepository.deleteById(albumOriginal.getId());
+            }
+            // change
+            else {
+                albumOriginal.setPosition(albumRevised.getPosition());
+                albumOriginal.setType(albumRevised.getType());
+                albumOriginal.setTypeCount(albumRevised.getTypeCount());
+                albumOriginal.setName(albumRevised.getName());
+                albumOriginal.setYear(albumRevised.getYear());
+
+                albumOriginal.setBand(band);
+                albumRepository.save(albumOriginal);
+            }
+        }
+
+        if (i < albumDiff.getRevised().size()) {
+            for (; i < albumDiff.getRevised().size(); i++) {
+                Album albumRevised = albumDiff.getRevised().get(i);
+
+                // plus
+                albumRevised.setBand(band);
+                albumRepository.save(albumRevised);
+            }
+        }
 
         // adjust discography
         adjustDiscography(band.getName(), null);
@@ -93,9 +121,12 @@ public class DiscographyService {
     }
 
     public boolean minus(Long albumId) {
+        // get album
         Album album = albumRepository.findById(albumId).get();
         String bandName = album.getBand().getName();
-        albumRepository.delete(album);
+
+        // delete album
+        albumRepository.deleteById(album.getId());
 
         // adjust discography
         adjustDiscography(bandName, null);

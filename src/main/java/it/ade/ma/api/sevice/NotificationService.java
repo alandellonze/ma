@@ -81,7 +81,7 @@ public class NotificationService {
                         document.append("<tr>");
                     }
 
-                    if (albumDiff.getRevised().size() < i) {
+                    if (i < albumDiff.getRevised().size()) {
                         for (; i < albumDiff.getRevised().size(); i++) {
                             Album albumRevised = albumDiff.getRevised().get(i);
 
