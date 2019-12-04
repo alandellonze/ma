@@ -33,7 +33,7 @@ public class DiscographyService {
 
     public void adjustAllPositions() {
         List<Band> bands = bandRepository.findAllByMaKeyNotNullOrderByName();
-        bands.forEach(band -> adjustDiscography(band.getName(), null));
+        bands.forEach(band -> adjustDiscography(band.getName()));
     }
 
     public void executeAll() {
@@ -60,7 +60,7 @@ public class DiscographyService {
                 discographyResult.setBand(band);
 
                 // notify
-                if (sendNotification) {
+                if (sendNotification && discographyResult.getChanges() > 0) {
                     notificationService.execute(discographyResult);
                 }
             }
@@ -70,19 +70,28 @@ public class DiscographyService {
         return discographyResult;
     }
 
-    public boolean plus(Band band, AlbumDiff albumDiff) {
+    public void plus(Band band, AlbumDiff albumDiff) {
+        // shift all the positions below the new first position and total size
+        Integer start = albumDiff.getRevised().get(0).getPosition();
+        Integer offset = albumDiff.getRevised().size();
+        adjustDiscography(band.getName(), start, offset);
+
+        // add
         albumDiff.getRevised().stream().forEach(album -> {
             album.setBand(band);
             albumRepository.save(album);
-
-            // adjust discography
-            adjustDiscography(band.getName(), album.getPosition());
-            adjustDiscography(band.getName(), null);
         });
-        return true;
+
+        // adjust discography
+        adjustDiscography(band.getName());
     }
 
-    public boolean change(Band band, AlbumDiff albumDiff) {
+    public void change(Band band, AlbumDiff albumDiff) {
+        // shift all the positions below the new first position and total size
+        Integer start = albumDiff.getRevised().get(0).getPosition() + albumDiff.getOriginal().size();
+        Integer offset = Math.abs(albumDiff.getOriginal().size() - albumDiff.getRevised().size());
+        adjustDiscography(band.getName(), start, offset);
+
         int i = 0;
         for (; i < albumDiff.getOriginal().size(); i++) {
             Album albumOriginal = albumDiff.getOriginal().get(i);
@@ -116,11 +125,10 @@ public class DiscographyService {
         }
 
         // adjust discography
-        adjustDiscography(band.getName(), null);
-        return true;
+        adjustDiscography(band.getName());
     }
 
-    public boolean minus(Long albumId) {
+    public void minus(Long albumId) {
         // get album
         Album album = albumRepository.findById(albumId).get();
         String bandName = album.getBand().getName();
@@ -129,25 +137,26 @@ public class DiscographyService {
         albumRepository.deleteById(album.getId());
 
         // adjust discography
-        adjustDiscography(bandName, null);
-        return true;
+        adjustDiscography(bandName);
     }
 
-    private void adjustDiscography(String bandName, Integer position) {
-        // normalize inputs
-        if (position == null) {
-            position = 0;
-        }
+    private void adjustDiscography(String bandName) {
+        adjustDiscography(bandName, 1, 0);
+    }
+
+    private void adjustDiscography(String bandName, Integer start, Integer offset) {
+        System.out.println("adjustDiscography(" + bandName + ", " + start + ", " + offset + ")");
 
         // get all the Albums
         List<Album> albums = albumRepository.findAllByBandNameOrderByPositionAsc(bandName);
 
         // adjust position
-        for (int i = position; i < albums.size(); i++) {
+        for (int i = start - 1; i < albums.size(); i++) {
             Album album = albums.get(i);
-            if (album.getPosition() != i + 1) {
-                System.out.println(bandName + ": " + album.getPosition() + " -> " + (i + 1) + " - " + album.getName());
-                album.setPosition(i + 1);
+            Integer position = i + 1 + offset;
+            if (!position.equals(album.getPosition())) {
+                System.out.println(bandName + ", " + i + ": " + album.getPosition() + " -> " + position + " - " + album.getName());
+                album.setPosition(position);
                 albumRepository.save(album);
             }
         }

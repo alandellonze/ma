@@ -34,10 +34,10 @@ spring:
 
   # spring mail
   mail:
-    host: smtp.mailgun.org
+    host: smtp.sendgrid.net
     port: 587
-    username: postmaster@sandbox8ef10d5c5b5f462baeef1d00943fa340.mailgun.org
-    password: eea9efd51d6a37a8cf34a55051cca2db-09001d55-515ff747
+    username: apikey
+    password: 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
 
 # logging
 logging:

@@ -50,30 +50,33 @@ public class DiscographyController {
 
     @PostMapping()
     public ResponseEntity plus(@RequestBody DiscographyItem discographyItem) {
-        boolean result = discographyService.plus(discographyItem.getBand(), discographyItem.getAlbumDiff());
-        if (result) {
+        try {
+            discographyService.plus(discographyItem.getBand(), discographyItem.getAlbumDiff());
             return ResponseEntity.ok().build();
-        } else {
+        } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         }
     }
 
     @PutMapping()
     public ResponseEntity change(@RequestBody DiscographyItem discographyItem) {
-        boolean result = discographyService.change(discographyItem.getBand(), discographyItem.getAlbumDiff());
-        if (result) {
+        try {
+            discographyService.change(discographyItem.getBand(), discographyItem.getAlbumDiff());
             return ResponseEntity.ok().build();
-        } else {
+        } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         }
     }
 
     @DeleteMapping("/{albumId}")
     public ResponseEntity minus(@PathVariable Long albumId) {
-        boolean result = discographyService.minus(albumId);
-        if (result) {
+        try {
+            discographyService.minus(albumId);
             return ResponseEntity.ok().build();
-        } else {
+        } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         }
     }
