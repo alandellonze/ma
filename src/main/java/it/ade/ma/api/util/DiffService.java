@@ -9,6 +9,8 @@ import it.ade.ma.api.model.Album;
 import it.ade.ma.api.model.dto.AlbumDiff;
 import it.ade.ma.api.model.dto.AlbumDiff.DiffType;
 import it.ade.ma.api.model.dto.DiscographyResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,7 +18,11 @@ import java.util.List;
 @Component
 public class DiffService {
 
+    private final static Logger logger = LoggerFactory.getLogger(DiffService.class);
+
     public DiscographyResult execute(List<Album> original, List<Album> revised) throws DiffException {
+        logger.info("execute({}, {})", original, revised);
+
         DiscographyResult discographyResult = new DiscographyResult();
 
         Patch<Album> patch = DiffUtils.diff(original, revised);
@@ -54,7 +60,7 @@ public class DiffService {
             }
         }
 
-        System.out.println("Changes found: " + discographyResult.getChanges());
+        logger.debug("changes found: {}", discographyResult.getChanges());
         return discographyResult;
     }
 
@@ -78,7 +84,7 @@ public class DiffService {
     private void equalAction(DiscographyResult discographyResult, List<Album> original) {
         List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
         for (Album album : original) {
-            System.out.println("  " + album);
+            logger.debug("  {}", album);
             albumDiffs.add(new AlbumDiff(DiffType.EQUAL, Lists.newArrayList(album), null));
         }
     }
@@ -86,7 +92,7 @@ public class DiffService {
     private void plusAction(DiscographyResult discographyResult, List<Album> revised) {
         List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
         for (Album album : revised) {
-            System.out.println("+ " + album);
+            logger.debug("+ {}", album);
             albumDiffs.add(new AlbumDiff(DiffType.PLUS, null, Lists.newArrayList(album)));
             incrementCount(discographyResult, 1);
         }
@@ -96,10 +102,10 @@ public class DiffService {
         List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
         for (Album album : original) {
             if (album.isFullyCustom()) {
-                System.out.println("  " + album);
+                logger.debug("  {}", album);
                 albumDiffs.add(new AlbumDiff(DiffType.EQUAL, Lists.newArrayList(album), null));
             } else {
-                System.out.println("- " + album);
+                logger.debug("- {}", album);
                 albumDiffs.add(new AlbumDiff(DiffType.MINUS, Lists.newArrayList(album), null));
                 incrementCount(discographyResult, 1);
             }
@@ -108,11 +114,11 @@ public class DiffService {
 
     private void changeAction(DiscographyResult discographyResult, List<Album> original, List<Album> revised) {
         List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
-        for (Album line : original) {
-            System.out.println("> " + line);
+        for (Album album : original) {
+            logger.debug("> {}", album);
         }
-        for (Album line : revised) {
-            System.out.println("< " + line);
+        for (Album album : revised) {
+            logger.debug("< {}", album);
         }
         albumDiffs.add(new AlbumDiff(DiffType.CHANGE, original, revised));
         incrementCount(discographyResult, Math.max(original.size(), revised.size()));
