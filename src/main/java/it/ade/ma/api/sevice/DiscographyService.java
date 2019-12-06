@@ -8,6 +8,8 @@ import it.ade.ma.api.repository.AlbumRepository;
 import it.ade.ma.api.repository.BandRepository;
 import it.ade.ma.api.util.DiffService;
 import it.ade.ma.api.util.RipperService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,8 @@ import java.util.List;
 
 @Service
 public class DiscographyService {
+
+    private final static Logger logger = LoggerFactory.getLogger(DiscographyService.class);
 
     @Autowired
     private BandRepository bandRepository;
@@ -32,16 +36,22 @@ public class DiscographyService {
     private NotificationService notificationService;
 
     public void adjustAllPositions() {
+        logger.info("adjustAllPositions()");
+
         List<Band> bands = bandRepository.findAllByMaKeyNotNullOrderByName();
         bands.forEach(band -> adjustDiscography(band.getName()));
     }
 
     public void executeAll() {
+        logger.info("executeAll()");
+
         List<Band> bands = bandRepository.findAllByMaKeyNotNullOrderByName();
         bands.forEach(band -> execute(band.getName(), true));
     }
 
     public DiscographyResult execute(String bandName, boolean sendNotification) {
+        logger.info("execute({}, {})", bandName, sendNotification);
+
         DiscographyResult discographyResult = null;
         try {
             // get Band from db
@@ -65,12 +75,14 @@ public class DiscographyService {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
         return discographyResult;
     }
 
     public void plus(Band band, AlbumDiff albumDiff) {
+        logger.info("plus({}, {})", band, albumDiff);
+
         // shift all the positions below the new first position and total size
         Integer start = albumDiff.getRevised().get(0).getPosition();
         Integer offset = albumDiff.getRevised().size();
@@ -87,6 +99,8 @@ public class DiscographyService {
     }
 
     public void change(Band band, AlbumDiff albumDiff) {
+        logger.info("change({}, {})", band, albumDiff);
+
         // shift all the positions below the new first position and total size
         Integer start = albumDiff.getRevised().get(0).getPosition() + albumDiff.getOriginal().size();
         Integer offset = Math.abs(albumDiff.getOriginal().size() - albumDiff.getRevised().size());
@@ -129,6 +143,8 @@ public class DiscographyService {
     }
 
     public void minus(Long albumId) {
+        logger.info("minus({})", albumId);
+
         // get album
         Album album = albumRepository.findById(albumId).get();
         String bandName = album.getBand().getName();
@@ -145,7 +161,7 @@ public class DiscographyService {
     }
 
     private void adjustDiscography(String bandName, Integer start, Integer offset) {
-        System.out.println("adjustDiscography(" + bandName + ", " + start + ", " + offset + ")");
+        logger.info("adjustDiscography({}, {}, {})", bandName, start, offset);
 
         // get all the Albums
         List<Album> albums = albumRepository.findAllByBandNameOrderByPositionAsc(bandName);
@@ -155,7 +171,7 @@ public class DiscographyService {
             Album album = albums.get(i);
             Integer position = i + 1 + offset;
             if (!position.equals(album.getPosition())) {
-                System.out.println(bandName + ", " + i + ": " + album.getPosition() + " -> " + position + " - " + album.getName());
+                logger.debug("{}, {}: {} -> {} - {}", bandName, i, album.getPosition(), position, album.getName());
                 album.setPosition(position);
                 albumRepository.save(album);
             }

@@ -5,6 +5,8 @@ import it.ade.ma.api.exception.AlbumTypeNormalizationNotFoundException;
 import it.ade.ma.api.model.Album;
 import it.ade.ma.api.model.dto.WebPageAlbum;
 import org.apache.commons.text.WordUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +18,8 @@ import java.util.Map;
 @Component
 public class RipperService {
 
+    private final static Logger logger = LoggerFactory.getLogger(RipperService.class);
+
     @Autowired
     private WebPageContentService webPageContentService;
 
@@ -23,6 +27,8 @@ public class RipperService {
     private AlbumTypeService albumTypeService;
 
     public List<Album> execute(Long bandMAKey) throws IOException {
+        logger.info("execute({})", bandMAKey);
+
         List<Album> albums = new ArrayList<>();
 
         // retrieve the album list from the web page
@@ -41,7 +47,7 @@ public class RipperService {
                 type = albumTypeService.normalize(webPageAlbum.getType());
             } catch (AlbumTypeNormalizationNotFoundException e) {
                 // FIXME album type normalization: collect all the not found normalizations in order to send a notification
-                e.printStackTrace();
+                logger.error(e.getMessage(), e);
                 type = "<" + webPageAlbum.getType() + ">";
             }
 

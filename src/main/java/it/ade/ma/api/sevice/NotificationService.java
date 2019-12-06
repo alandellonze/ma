@@ -6,6 +6,8 @@ import it.ade.ma.api.model.dto.AlbumDiff;
 import it.ade.ma.api.model.dto.AlbumDiff.DiffType;
 import it.ade.ma.api.model.dto.DiscographyResult;
 import it.ade.ma.api.util.MailService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -16,6 +18,8 @@ import java.util.List;
 @Service
 public class NotificationService {
 
+    private final static Logger logger = LoggerFactory.getLogger(NotificationService.class);
+
     @Value("${ma.url}")
     private String maUrl;
 
@@ -24,6 +28,8 @@ public class NotificationService {
 
     @Async
     public void execute(DiscographyResult discographyResult) {
+        logger.info("execute({})", discographyResult);
+
         Band band = discographyResult.getBand();
         Integer changes = discographyResult.getChanges();
         List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
@@ -35,12 +41,16 @@ public class NotificationService {
     }
 
     private String prepareSubject(Band band, Integer changes) {
+        logger.debug("prepareSubject({}, {})", band, changes);
+
         StringBuilder subject = new StringBuilder(band.getName())
                 .append(" (").append(changes).append(" differences)");
         return subject.toString();
     }
 
     private String prepareText(Band band, List<AlbumDiff> albumDiffs) {
+        logger.debug("prepareText({}, {})", band, albumDiffs);
+
         StringBuilder document = new StringBuilder();
 
         document.append("<table cellspacing='0' cellpadding='5' style='font-size: 12px; border-bottom: 1px SOLID #AAAAAA;'>");

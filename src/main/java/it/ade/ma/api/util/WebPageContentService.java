@@ -4,6 +4,8 @@ import it.ade.ma.api.model.dto.WebPageAlbum;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,14 +17,19 @@ import java.util.stream.Collectors;
 @Component
 public class WebPageContentService {
 
+    private final static Logger logger = LoggerFactory.getLogger(WebPageContentService.class);
+
     @Value("${ma.url}")
     private String maUrl;
 
     public List<WebPageAlbum> parse(Long bandMAKey) throws IOException {
+        logger.info("parse({})", bandMAKey);
+
         List<WebPageAlbum> webPageAlbums = new ArrayList<>();
 
         // retrieve the web page content
         String url = String.format(maUrl, bandMAKey);
+        logger.debug("url: {}", url);
         Document doc = Jsoup.connect(url).get();
 
         // extract all the td's html content
