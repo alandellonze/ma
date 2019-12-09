@@ -2,7 +2,7 @@ package it.ade.ma.mp3;
 
 import com.mpatric.mp3agic.ID3v1;
 import com.mpatric.mp3agic.ID3v2;
-import com.mpatric.mp3agic.ID3v23Tag;
+import com.mpatric.mp3agic.ID3v24Tag;
 import com.mpatric.mp3agic.Mp3File;
 
 import java.io.IOException;
@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Deprecated
 public class MP3Test {
 
     public static void main(String[] args) throws Exception {
@@ -24,11 +25,11 @@ public class MP3Test {
         //   String albumPosition = "06";
         //   String albumName = "The Redemption Of William Black (Infinite Entanglement Part III)";
         //   String albumYear = "2018";
+
         String bandName = "Trick Or Treat";
         String albumPosition = "05";
         String albumName = "Re-Animated";
         String albumYear = "2018";
-
 
         // this data should be taken from disk
         String albumCover = rootFolder.concat(coversFolder).concat(bandName).concat("/" + albumPosition).concat(" - " + albumName).concat(".jpg");
@@ -36,7 +37,7 @@ public class MP3Test {
         String albumCoverMime = "image/jpeg";
 
         // create the  id3v2 template
-        ID3v2 id3v2TagTemplate = new ID3v23Tag();
+        ID3v2 id3v2TagTemplate = new ID3v24Tag();
         id3v2TagTemplate.setArtist(bandName);
         id3v2TagTemplate.setAlbum(albumName);
         id3v2TagTemplate.setYear(albumYear);
@@ -44,13 +45,13 @@ public class MP3Test {
         id3v2TagTemplate.setGenreDescription("Metal");
         id3v2TagTemplate.setAlbumImage(albumCoverImage, albumCoverMime);
 
+        // adjust all the mp3 files
         String albumFolder = rootFolder.concat(mp3Folder).concat(bandName).concat("/" + albumPosition).concat(" - " + albumName);
-
         List<String> mp3FileNames = listFilesUsingDirectoryStream(albumFolder);
         mp3FileNames.forEach(mp3FileName -> handleMp3(id3v2TagTemplate, mp3FileName));
     }
 
-    public static List<String> listFilesUsingDirectoryStream(String dir) throws IOException {
+    private static List<String> listFilesUsingDirectoryStream(String dir) throws IOException {
         List<String> fileList = new ArrayList<>();
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(dir))) {
@@ -65,7 +66,7 @@ public class MP3Test {
         return fileList;
     }
 
-    public static void handleMp3(ID3v2 id3v2TagTemplate, String mp3FileName) {
+    private static void handleMp3(ID3v2 id3v2TagTemplate, String mp3FileName) {
         System.out.println("\n" + mp3FileName);
 
         try {
