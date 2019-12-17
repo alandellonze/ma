@@ -53,12 +53,25 @@ public class MP3Util {
     }
 
     private String generateFolderName(String subFolder, Album album) {
-        StringBuilder folderName = new StringBuilder(rootFolder)
-                .append(subFolder)
-                .append(album.getBand().getName())
-                // FIXME add type too
-                .append("/").append(String.format("%02d", album.getTypeCount()))
-                .append(" - ").append(album.getName());
+        // add root folders
+        StringBuilder folderName = new StringBuilder(rootFolder).append(subFolder);
+
+        // add band folder
+        folderName.append(album.getBand().getName()).append("/");
+
+        // add album type
+        String type = (album.getMaType() != null) ? album.getMaType() : album.getType();
+        type = (type == null || "FULLLENGTH".equals(type)) ? "" : type;
+        folderName.append(type);
+
+        // add album typeCount
+        Integer typeCount = (album.getMaTypeCount() != null) ? album.getMaTypeCount() : album.getTypeCount();
+        folderName.append(String.format("%02d", typeCount));
+
+        // add name
+        String name = (album.getMaName() != null) ? album.getMaName() : album.getName();
+        folderName.append(" - ").append(name);
+
         return folderName.toString();
     }
 
