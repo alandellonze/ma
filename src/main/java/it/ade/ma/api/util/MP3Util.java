@@ -90,6 +90,16 @@ public class MP3Util {
         return fileList;
     }
 
+    public String extractTitleFromFilaName(Mp3File mp3File) {
+        logger.info("extractTitleFromFilaName(mp3File={})", mp3File.getFilename());
+
+        String filename = mp3File.getFilename();
+        filename = filename.substring(filename.lastIndexOf("/"), filename.length());
+        filename = filename.substring(filename.indexOf("-"), filename.length());
+        filename = filename.substring(filename.indexOf(".mp3"));
+        return filename.trim();
+    }
+
     public void updateMP3File(Mp3File mp3File) throws IOException, NotSupportedException {
         logger.info("updateMP3File(mp3File={})", mp3File.getFilename());
 
