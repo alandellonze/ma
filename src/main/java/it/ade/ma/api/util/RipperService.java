@@ -2,7 +2,7 @@ package it.ade.ma.api.util;
 
 import com.google.common.collect.Maps;
 import it.ade.ma.api.exception.AlbumTypeNormalizationNotFoundException;
-import it.ade.ma.api.model.Album;
+import it.ade.ma.api.model.dto.AlbumDTO;
 import it.ade.ma.api.model.dto.WebPageAlbum;
 import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
@@ -20,16 +20,23 @@ public class RipperService {
 
     private final static Logger logger = LoggerFactory.getLogger(RipperService.class);
 
-    @Autowired
     private WebPageContentService webPageContentService;
-
-    @Autowired
     private AlbumTypeService albumTypeService;
 
-    public List<Album> execute(Long bandMAKey) throws IOException {
+    @Autowired
+    public void setWebPageContentService(WebPageContentService webPageContentService) {
+        this.webPageContentService = webPageContentService;
+    }
+
+    @Autowired
+    public void setAlbumTypeService(AlbumTypeService albumTypeService) {
+        this.albumTypeService = albumTypeService;
+    }
+
+    public List<AlbumDTO> execute(Long bandMAKey) throws IOException {
         logger.info("execute({})", bandMAKey);
 
-        List<Album> albums = new ArrayList<>();
+        List<AlbumDTO> albums = new ArrayList<>();
 
         // retrieve the album list from the web page
         List<WebPageAlbum> webPageAlbums = webPageContentService.parse(bandMAKey);
@@ -61,7 +68,7 @@ public class RipperService {
             Integer year = Integer.parseInt(webPageAlbum.getYear());
 
             // add to the list
-            albums.add(new Album((i + 1), type, typeCount, name, year));
+            albums.add(new AlbumDTO((i + 1), type, typeCount, name, year));
         }
 
         return albums;

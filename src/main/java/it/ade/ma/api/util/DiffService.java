@@ -5,7 +5,7 @@ import com.github.difflib.algorithm.DiffException;
 import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
 import com.google.common.collect.Lists;
-import it.ade.ma.api.model.Album;
+import it.ade.ma.api.model.dto.AlbumDTO;
 import it.ade.ma.api.model.dto.AlbumDiff;
 import it.ade.ma.api.model.dto.AlbumDiff.DiffType;
 import it.ade.ma.api.model.dto.DiscographyResult;
@@ -20,13 +20,13 @@ public class DiffService {
 
     private final static Logger logger = LoggerFactory.getLogger(DiffService.class);
 
-    public DiscographyResult execute(List<Album> original, List<Album> revised) throws DiffException {
+    public DiscographyResult execute(List<AlbumDTO> original, List<AlbumDTO> revised) throws DiffException {
         logger.info("execute({}, {})", original, revised);
 
         DiscographyResult discographyResult = new DiscographyResult();
 
-        Patch<Album> patch = DiffUtils.diff(original, revised);
-        List<AbstractDelta<Album>> deltas = patch.getDeltas();
+        Patch<AlbumDTO> patch = DiffUtils.diff(original, revised);
+        List<AbstractDelta<AlbumDTO>> deltas = patch.getDeltas();
 
         // if there are no differences
         if (deltas.size() == 0) {
@@ -81,26 +81,26 @@ public class DiffService {
         }
     }
 
-    private void equalAction(DiscographyResult discographyResult, List<Album> original) {
+    private void equalAction(DiscographyResult discographyResult, List<AlbumDTO> original) {
         List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
-        for (Album album : original) {
+        for (AlbumDTO album : original) {
             logger.debug("  {}", album);
             albumDiffs.add(new AlbumDiff(DiffType.EQUAL, Lists.newArrayList(album), null));
         }
     }
 
-    private void plusAction(DiscographyResult discographyResult, List<Album> revised) {
+    private void plusAction(DiscographyResult discographyResult, List<AlbumDTO> revised) {
         List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
-        for (Album album : revised) {
+        for (AlbumDTO album : revised) {
             logger.debug("+ {}", album);
             albumDiffs.add(new AlbumDiff(DiffType.PLUS, null, Lists.newArrayList(album)));
             incrementCount(discographyResult, 1);
         }
     }
 
-    private void minusAction(DiscographyResult discographyResult, List<Album> original) {
+    private void minusAction(DiscographyResult discographyResult, List<AlbumDTO> original) {
         List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
-        for (Album album : original) {
+        for (AlbumDTO album : original) {
             if (album.isFullyCustom()) {
                 logger.debug("  {}", album);
                 albumDiffs.add(new AlbumDiff(DiffType.EQUAL, Lists.newArrayList(album), null));
@@ -112,12 +112,12 @@ public class DiffService {
         }
     }
 
-    private void changeAction(DiscographyResult discographyResult, List<Album> original, List<Album> revised) {
+    private void changeAction(DiscographyResult discographyResult, List<AlbumDTO> original, List<AlbumDTO> revised) {
         List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
-        for (Album album : original) {
+        for (AlbumDTO album : original) {
             logger.debug("> {}", album);
         }
-        for (Album album : revised) {
+        for (AlbumDTO album : revised) {
             logger.debug("< {}", album);
         }
         albumDiffs.add(new AlbumDiff(DiffType.CHANGE, original, revised));

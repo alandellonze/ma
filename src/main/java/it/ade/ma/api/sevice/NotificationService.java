@@ -1,7 +1,7 @@
 package it.ade.ma.api.sevice;
 
-import it.ade.ma.api.model.Album;
 import it.ade.ma.api.model.Band;
+import it.ade.ma.api.model.dto.AlbumDTO;
 import it.ade.ma.api.model.dto.AlbumDiff;
 import it.ade.ma.api.model.dto.AlbumDiff.DiffType;
 import it.ade.ma.api.model.dto.DiscographyResult;
@@ -23,11 +23,15 @@ public class NotificationService {
     @Value("${ma.url}")
     private String maUrl;
 
-    @Autowired
     private MailService mailService;
 
+    @Autowired
+    public void setMailService(MailService mailService) {
+        this.mailService = mailService;
+    }
+
     @Async
-    public void execute(DiscographyResult discographyResult) {
+    void execute(DiscographyResult discographyResult) {
         logger.info("execute({})", discographyResult);
 
         Band band = discographyResult.getBand();
@@ -43,9 +47,7 @@ public class NotificationService {
     private String prepareSubject(Band band, Integer changes) {
         logger.debug("prepareSubject({}, {})", band, changes);
 
-        StringBuilder subject = new StringBuilder(band.getName())
-                .append(" (").append(changes).append(" differences)");
-        return subject.toString();
+        return band.getName() + " (" + changes + " differences)";
     }
 
     private String prepareText(Band band, List<AlbumDiff> albumDiffs) {
@@ -58,7 +60,7 @@ public class NotificationService {
         for (AlbumDiff albumDiff : albumDiffs) {
             switch (albumDiff.getType()) {
                 case EQUAL:
-                    for (Album albumOriginal : albumDiff.getOriginal()) {
+                    for (AlbumDTO albumOriginal : albumDiff.getOriginal()) {
                         document.append("<tr>");
                         generateRows(document, albumDiff.getType(), albumOriginal, null);
                         document.append("</tr>");
@@ -66,7 +68,7 @@ public class NotificationService {
                     break;
 
                 case PLUS:
-                    for (Album albumRevised : albumDiff.getRevised()) {
+                    for (AlbumDTO albumRevised : albumDiff.getRevised()) {
                         document.append("<tr style='background-color: #77FF77; color: #7777FF;'>");
                         generateRows(document, albumDiff.getType(), null, albumRevised);
                         document.append("</tr>");
@@ -74,7 +76,7 @@ public class NotificationService {
                     break;
 
                 case MINUS:
-                    for (Album albumOriginal : albumDiff.getOriginal()) {
+                    for (AlbumDTO albumOriginal : albumDiff.getOriginal()) {
                         document.append("<tr style='background-color: #FF7777; color: #FFFF77;'>");
                         generateRows(document, albumDiff.getType(), albumOriginal, null);
                         document.append("</tr>");
@@ -84,8 +86,8 @@ public class NotificationService {
                 case CHANGE:
                     int i = 0;
                     for (; i < albumDiff.getOriginal().size(); i++) {
-                        Album albumOriginal = albumDiff.getOriginal().get(i);
-                        Album albumRevised = (i < albumDiff.getRevised().size()) ? albumDiff.getRevised().get(i) : null;
+                        AlbumDTO albumOriginal = albumDiff.getOriginal().get(i);
+                        AlbumDTO albumRevised = (i < albumDiff.getRevised().size()) ? albumDiff.getRevised().get(i) : null;
 
                         document.append("<tr style='background-color: #EEECC0; color: #555555;'>");
                         generateRows(document, albumDiff.getType(), albumOriginal, albumRevised);
@@ -94,7 +96,7 @@ public class NotificationService {
 
                     if (i < albumDiff.getRevised().size()) {
                         for (; i < albumDiff.getRevised().size(); i++) {
-                            Album albumRevised = albumDiff.getRevised().get(i);
+                            AlbumDTO albumRevised = albumDiff.getRevised().get(i);
 
                             document.append("<tr style='background-color: #EEECC0; color: #555555;'>");
                             generateRows(document, albumDiff.getType(), null, albumRevised);
@@ -114,7 +116,7 @@ public class NotificationService {
         return document.toString();
     }
 
-    private void generateRows(StringBuilder document, DiffType diffType, Album albumOriginal, Album albumRevised) {
+    private void generateRows(StringBuilder document, DiffType diffType, AlbumDTO albumOriginal, AlbumDTO albumRevised) {
         generateDiffType(document, diffType);
 
         if (albumOriginal != null) {
@@ -166,13 +168,13 @@ public class NotificationService {
         document.append("</td>");
     }
 
-    private void generatePosition(StringBuilder document, Album album) {
+    private void generatePosition(StringBuilder document, AlbumDTO album) {
         generateTd(document);
         document.append(album.getPosition())
                 .append("</td>");
     }
 
-    private void generateType(StringBuilder document, Album album) {
+    private void generateType(StringBuilder document, AlbumDTO album) {
         generateTd(document);
         if (album.getMaType() != null) {
             document.append("<i>").append(album.getMaType()).append("</i>");
@@ -182,7 +184,7 @@ public class NotificationService {
         document.append("</td>");
     }
 
-    private void generateTypeCount(StringBuilder document, Album album) {
+    private void generateTypeCount(StringBuilder document, AlbumDTO album) {
         generateTd(document);
         if (album.getMaTypeCount() != null) {
             document.append("<i>").append(String.format("%02d", album.getMaTypeCount())).append("</i>");
@@ -192,7 +194,7 @@ public class NotificationService {
         document.append("</td>");
     }
 
-    private void generateName(StringBuilder document, Album album) {
+    private void generateName(StringBuilder document, AlbumDTO album) {
         generateTd(document);
         if (album.getMaName() != null) {
             document.append("<i>").append(album.getMaName()).append("</i>");
@@ -202,13 +204,13 @@ public class NotificationService {
         document.append("</td>");
     }
 
-    private void generateYear(StringBuilder document, Album album) {
+    private void generateYear(StringBuilder document, AlbumDTO album) {
         generateTd(document);
         document.append(album.getYear())
                 .append("</td>");
     }
 
-    private void generateStatus(StringBuilder document, Album album) {
+    private void generateStatus(StringBuilder document, AlbumDTO album) {
         String status;
         switch (album.getStatus()) {
             case NONE:

@@ -4,8 +4,7 @@ import com.mpatric.mp3agic.ID3v1;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.ID3v22Tag;
 import com.mpatric.mp3agic.Mp3File;
-import it.ade.ma.api.model.Album;
-import it.ade.ma.api.model.Band;
+import it.ade.ma.api.model.dto.AlbumDTO;
 import it.ade.ma.api.util.MP3Util;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
@@ -21,15 +20,18 @@ public class MP3Service {
 
     private final static Logger logger = LoggerFactory.getLogger(MP3Service.class);
 
-    @Autowired
     private MP3Util mp3Util;
 
+    @Autowired
+    public void setMp3Util(MP3Util mp3Util) {
+        this.mp3Util = mp3Util;
+    }
+
     public void adjustAlbumFolder() throws Exception {
-        Album album = new Album();
-        album.setBand(new Band());
+        AlbumDTO album = new AlbumDTO();
 
         // test 1
-        album.getBand().setName("Blaze Bayley");
+        album.setBandName("Blaze Bayley");
         album.setType("FULLLENGTH");
         album.setTypeCount(6);
         album.setName("The Redemption Of William Black (Infinite Entanglement Part III)");
@@ -45,7 +47,7 @@ public class MP3Service {
         adjustAlbumFolder(album);
     }
 
-    public void adjustAlbumFolder(Album album) throws Exception {
+    private void adjustAlbumFolder(AlbumDTO album) throws Exception {
         logger.info("adjustAlbumFolder({})", album);
 
         // create the id3v2 template

@@ -4,7 +4,7 @@ import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.ID3v24Tag;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.NotSupportedException;
-import it.ade.ma.api.model.Album;
+import it.ade.ma.api.model.dto.AlbumDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -28,7 +28,7 @@ public class MP3Util {
     private Integer defaultGenre = 9;
     private String defaultGenreDescription = "Metal";
 
-    public ID3v2 createID3v2Template(Album album) throws IOException {
+    public ID3v2 createID3v2Template(AlbumDTO album) throws IOException {
         // FIXME cover image: it couldn't be a jpg image...
         // get cover from disk
         String albumCover = generateFolderName(coversFolder, album).concat(".jpg");
@@ -37,7 +37,7 @@ public class MP3Util {
 
         // create the id3v2 template
         ID3v2 id3v2TagTemplate = new ID3v24Tag();
-        id3v2TagTemplate.setArtist(album.getBand().getName());
+        id3v2TagTemplate.setArtist(album.getBandName());
         id3v2TagTemplate.setAlbum(album.getName());
         id3v2TagTemplate.setYear(album.getYear().toString());
         id3v2TagTemplate.setGenre(defaultGenre);
@@ -47,17 +47,17 @@ public class MP3Util {
         return id3v2TagTemplate;
     }
 
-    public List<String> getMP3FileNameList(Album album) throws IOException {
+    public List<String> getMP3FileNameList(AlbumDTO album) throws IOException {
         String albumFolder = generateFolderName(mp3Folder, album);
         return getFileList(albumFolder);
     }
 
-    private String generateFolderName(String subFolder, Album album) {
+    private String generateFolderName(String subFolder, AlbumDTO album) {
         // add root folders
         StringBuilder folderName = new StringBuilder(rootFolder).append(subFolder);
 
         // add band folder
-        folderName.append(album.getBand().getName()).append("/");
+        folderName.append(album.getBandName()).append("/");
 
         // add album type
         String type = (album.getMaType() != null) ? album.getMaType() : album.getType();

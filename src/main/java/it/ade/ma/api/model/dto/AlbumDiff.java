@@ -1,6 +1,5 @@
 package it.ade.ma.api.model.dto;
 
-import it.ade.ma.api.model.Album;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,7 +19,7 @@ public class AlbumDiff {
     }
 
     DiffType type;
-    List<Album> original;
-    List<Album> revised;
+    List<AlbumDTO> original;
+    List<AlbumDTO> revised;
 
 }
