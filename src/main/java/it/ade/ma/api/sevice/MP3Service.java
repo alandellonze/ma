@@ -5,7 +5,9 @@ import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.ID3v22Tag;
 import com.mpatric.mp3agic.Mp3File;
 import it.ade.ma.api.model.dto.AlbumDTO;
+import it.ade.ma.api.model.enums.MP3Status;
 import it.ade.ma.api.util.MP3Util;
+import it.ade.ma.api.util.PathUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
@@ -20,11 +22,42 @@ public class MP3Service {
 
     private final static Logger logger = LoggerFactory.getLogger(MP3Service.class);
 
+    private PathUtil pathUtil;
     private MP3Util mp3Util;
+
+    @Autowired
+    public void setPathUtil(PathUtil pathUtil) {
+        this.pathUtil = pathUtil;
+    }
 
     @Autowired
     public void setMp3Util(MP3Util mp3Util) {
         this.mp3Util = mp3Util;
+    }
+
+    void findAndUpdate(List<AlbumDTO> albums) {
+        logger.info("findAndUpdate({})", (albums != null ? albums.size() : null));
+
+        albums.forEach(album -> {
+            MP3Status status;
+
+            // look into mp3 folder
+            String path = pathUtil.generateMP3Name(album);
+            boolean exists = pathUtil.fileExists(path);
+            if (exists) {
+                status = MP3Status.PRESENT;
+            }
+
+            // look into tmp folder
+            else {
+                path = pathUtil.generateTMPName(album);
+                exists = pathUtil.fileExists(path);
+                status = exists ? MP3Status.TMP : MP3Status.NOT_PRESENT;
+            }
+
+            // update status
+            album.setMp3Status(status);
+        });
     }
 
     public void adjustAlbumFolder() throws Exception {
@@ -54,7 +87,7 @@ public class MP3Service {
         ID3v2 id3v2TagTemplate = mp3Util.createID3v2Template(album);
 
         // adjust all the mp3 files
-        List<String> mp3FileNames = mp3Util.getMP3FileNameList(album);
+        List<String> mp3FileNames = pathUtil.getMP3FileNameList(album);
         mp3FileNames.forEach(mp3FileName -> handleMp3(id3v2TagTemplate, mp3FileName));
     }
 

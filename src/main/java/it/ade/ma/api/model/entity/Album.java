@@ -1,5 +1,6 @@
-package it.ade.ma.api.model;
+package it.ade.ma.api.model.entity;
 
+import it.ade.ma.api.model.enums.AlbumStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,13 +12,6 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Album {
-
-    public enum AlbumStatus {
-        NONE,
-        MISSED,
-        PRESENT,
-        PRESENT_WITH_COVER
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

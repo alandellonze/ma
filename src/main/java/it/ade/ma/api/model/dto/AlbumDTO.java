@@ -1,6 +1,8 @@
 package it.ade.ma.api.model.dto;
 
-import it.ade.ma.api.model.Album;
+import it.ade.ma.api.model.enums.AlbumStatus;
+import it.ade.ma.api.model.enums.CoverStatus;
+import it.ade.ma.api.model.enums.MP3Status;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,17 +11,23 @@ import lombok.NoArgsConstructor;
 public class AlbumDTO {
 
     Long id;
+
     Long bandId;
     String bandName;
+
     Integer position;
     String type;
     Integer typeCount;
     String name;
     Integer year;
-    Album.AlbumStatus status = Album.AlbumStatus.NONE;
+    AlbumStatus status = AlbumStatus.NONE;
+
     String maType;
     Integer maTypeCount;
     String maName;
+
+    MP3Status mp3Status = MP3Status.NOT_PRESENT;
+    CoverStatus coverStatus = CoverStatus.NOT_PRESENT;
 
     public AlbumDTO(Integer position, String type, Integer typeCount, String name, Integer year) {
         this.position = position;

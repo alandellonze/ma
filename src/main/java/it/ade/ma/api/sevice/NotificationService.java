@@ -1,10 +1,10 @@
 package it.ade.ma.api.sevice;
 
-import it.ade.ma.api.model.Band;
 import it.ade.ma.api.model.dto.AlbumDTO;
 import it.ade.ma.api.model.dto.AlbumDiff;
 import it.ade.ma.api.model.dto.AlbumDiff.DiffType;
 import it.ade.ma.api.model.dto.DiscographyResult;
+import it.ade.ma.api.model.entity.Band;
 import it.ade.ma.api.util.MailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,8 +20,8 @@ public class NotificationService {
 
     private final static Logger logger = LoggerFactory.getLogger(NotificationService.class);
 
-    @Value("${ma.url}")
-    private String maUrl;
+    @Value("${ma.metal-archives.url}")
+    private String maMetalArchivesUrl;
 
     private MailService mailService;
 
@@ -110,7 +110,7 @@ public class NotificationService {
         document.append("</table>");
 
         // add original source
-        String url = String.format(maUrl, band.getMaKey());
+        String url = String.format(maMetalArchivesUrl, band.getMaKey());
         document.append("<br />").append("<b>source</b>: ").append(url);
 
         return document.toString();

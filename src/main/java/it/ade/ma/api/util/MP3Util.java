@@ -7,12 +7,13 @@ import com.mpatric.mp3agic.NotSupportedException;
 import it.ade.ma.api.model.dto.AlbumDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 @Component
@@ -20,18 +21,19 @@ public class MP3Util {
 
     private final static Logger logger = LoggerFactory.getLogger(MP3Util.class);
 
-    // FIXME this data should be taken from properties
-    private String rootFolder = "/Users/ade/Downloads/xxx/";
-    private String mp3Folder = "mp3/";
-    private String coversFolder = "covers/";
+    private PathUtil pathUtil;
+
+    @Autowired
+    public void setPathUtil(PathUtil pathUtil) {
+        this.pathUtil = pathUtil;
+    }
 
     private Integer defaultGenre = 9;
     private String defaultGenreDescription = "Metal";
 
     public ID3v2 createID3v2Template(AlbumDTO album) throws IOException {
-        // FIXME cover image: it couldn't be a jpg image...
         // get cover from disk
-        String albumCover = generateFolderName(coversFolder, album).concat(".jpg");
+        String albumCover = pathUtil.generateCoverName(album);
         byte[] albumCoverImage = Files.readAllBytes(Paths.get(albumCover));
         String albumCoverMime = "image/jpeg";
 
@@ -45,49 +47,6 @@ public class MP3Util {
         id3v2TagTemplate.setAlbumImage(albumCoverImage, albumCoverMime);
 
         return id3v2TagTemplate;
-    }
-
-    public List<String> getMP3FileNameList(AlbumDTO album) throws IOException {
-        String albumFolder = generateFolderName(mp3Folder, album);
-        return getFileList(albumFolder);
-    }
-
-    private String generateFolderName(String subFolder, AlbumDTO album) {
-        // add root folders
-        StringBuilder folderName = new StringBuilder(rootFolder).append(subFolder);
-
-        // add band folder
-        folderName.append(album.getBandName()).append("/");
-
-        // add album type
-        String type = (album.getMaType() != null) ? album.getMaType() : album.getType();
-        type = (type == null || "FULLLENGTH".equals(type)) ? "" : type;
-        folderName.append(type);
-
-        // add album typeCount
-        Integer typeCount = (album.getMaTypeCount() != null) ? album.getMaTypeCount() : album.getTypeCount();
-        folderName.append(String.format("%02d", typeCount));
-
-        // add name
-        String name = (album.getMaName() != null) ? album.getMaName() : album.getName();
-        folderName.append(" - ").append(name);
-
-        return folderName.toString();
-    }
-
-    private List<String> getFileList(String folder) throws IOException {
-        List<String> fileList = new ArrayList<>();
-
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(folder))) {
-            for (Path path : stream) {
-                if (!Files.isDirectory(path)) {
-                    fileList.add(folder + "/" + path.getFileName().toString());
-                }
-            }
-        }
-
-        Collections.sort(fileList);
-        return fileList;
     }
 
     public String extractTitleFromFilaName(Mp3File mp3File) {

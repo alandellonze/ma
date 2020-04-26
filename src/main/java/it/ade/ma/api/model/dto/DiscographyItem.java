@@ -1,6 +1,6 @@
 package it.ade.ma.api.model.dto;
 
-import it.ade.ma.api.model.Band;
+import it.ade.ma.api.model.entity.Band;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

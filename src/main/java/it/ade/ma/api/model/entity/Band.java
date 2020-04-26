@@ -1,4 +1,4 @@
-package it.ade.ma.api.model;
+package it.ade.ma.api.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

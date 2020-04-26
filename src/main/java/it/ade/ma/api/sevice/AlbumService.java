@@ -1,7 +1,7 @@
 package it.ade.ma.api.sevice;
 
-import it.ade.ma.api.model.Album;
-import it.ade.ma.api.model.Band;
+import it.ade.ma.api.model.entity.Album;
+import it.ade.ma.api.model.entity.Band;
 import it.ade.ma.api.model.dto.AlbumDTO;
 import it.ade.ma.api.repository.AlbumRepository;
 import org.modelmapper.ModelMapper;

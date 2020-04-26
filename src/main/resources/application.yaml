@@ -52,4 +52,12 @@ mail:
   to: alan.dellonze@gmail.com
 
 # ma discography
-ma.url: https://www.metal-archives.com/band/discography/id/%s/tab/all
+ma:
+  metal-archives:
+    url: https://www.metal-archives.com/band/discography/id/%s/tab/all
+  path:
+    main: /Users/ade/Downloads/- MISC/music/
+    tmp: "- tmp/"
+    cover: covers/
+    mp3: mp3/
+    scans: scans/

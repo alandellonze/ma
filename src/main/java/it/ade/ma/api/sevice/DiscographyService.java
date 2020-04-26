@@ -1,9 +1,9 @@
 package it.ade.ma.api.sevice;
 
-import it.ade.ma.api.model.Band;
 import it.ade.ma.api.model.dto.AlbumDTO;
 import it.ade.ma.api.model.dto.AlbumDiff;
 import it.ade.ma.api.model.dto.DiscographyResult;
+import it.ade.ma.api.model.entity.Band;
 import it.ade.ma.api.repository.BandRepository;
 import it.ade.ma.api.util.DiffService;
 import it.ade.ma.api.util.RipperService;
@@ -21,9 +21,16 @@ public class DiscographyService {
 
     private BandRepository bandRepository;
     private AlbumService albumService;
+    private MP3Service mp3Service;
+    private CoverService coverService;
     private RipperService ripperService;
     private DiffService diffService;
     private NotificationService notificationService;
+
+    @Autowired
+    public void setBandRepository(BandRepository bandRepository) {
+        this.bandRepository = bandRepository;
+    }
 
     @Autowired
     public void setAlbumService(AlbumService albumService) {
@@ -31,8 +38,13 @@ public class DiscographyService {
     }
 
     @Autowired
-    public void setBandRepository(BandRepository bandRepository) {
-        this.bandRepository = bandRepository;
+    public void setMp3Service(MP3Service mp3Service) {
+        this.mp3Service = mp3Service;
+    }
+
+    @Autowired
+    public void setCoverService(CoverService coverService) {
+        this.coverService = coverService;
     }
 
     @Autowired
@@ -74,6 +86,12 @@ public class DiscographyService {
             if (band != null) {
                 // get Albums from db
                 List<AlbumDTO> albumsFromDB = albumService.findAllByBandName(band.getName());
+
+                // search MP3 for each Albums
+                mp3Service.findAndUpdate(albumsFromDB);
+
+                // search Covers for each Albums
+                coverService.findAndUpdate(albumsFromDB);
 
                 // get Albums from web
                 List<AlbumDTO> albumsFromWeb = ripperService.execute(band.getMaKey());

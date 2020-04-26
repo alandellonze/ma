@@ -19,16 +19,16 @@ public class WebPageContentService {
 
     private final static Logger logger = LoggerFactory.getLogger(WebPageContentService.class);
 
-    @Value("${ma.url}")
-    private String maUrl;
+    @Value("${ma.metal-archives.url}")
+    private String maMetalArchivesUrl;
 
-    public List<WebPageAlbum> parse(Long bandMAKey) throws IOException {
+    List<WebPageAlbum> parse(Long bandMAKey) throws IOException {
         logger.info("parse({})", bandMAKey);
 
         List<WebPageAlbum> webPageAlbums = new ArrayList<>();
 
         // retrieve the web page content
-        String url = String.format(maUrl, bandMAKey);
+        String url = String.format(maMetalArchivesUrl, bandMAKey);
         logger.debug("url: {}", url);
         Document doc = Jsoup.connect(url).get();
 
