@@ -21,8 +21,14 @@ public class MP3Service {
 
     private final static Logger logger = LoggerFactory.getLogger(MP3Service.class);
 
+    private AlbumService albumService;
     private PathUtil pathUtil;
     private MP3Util mp3Util;
+
+    @Autowired
+    public void setAlbumService(AlbumService albumService) {
+        this.albumService = albumService;
+    }
 
     @Autowired
     public void setPathUtil(PathUtil pathUtil) {
@@ -44,7 +50,6 @@ public class MP3Service {
                 // look into mp3 folder
                 String path = pathUtil.generateMP3Name(album);
                 boolean exists = pathUtil.fileExists(path);
-                System.out.println(path + " " + exists);
                 if (exists) {
                     status = MP3Status.PRESENT;
                 }
@@ -53,7 +58,6 @@ public class MP3Service {
                 else {
                     path = pathUtil.generateTMPName(album);
                     exists = pathUtil.fileExists(path);
-                    System.out.println(path + " " + exists);
                     status = exists ? MP3Status.TMP : MP3Status.NOT_PRESENT;
                 }
 
@@ -94,6 +98,11 @@ public class MP3Service {
         album.setName("The Way To Rock 'n' Roll");
         album.setYear(2019);
 
+        adjustAlbumFolder(album);
+    }
+
+    public void check(Long albumId) throws Exception {
+        AlbumDTO album = albumService.findById(albumId);
         adjustAlbumFolder(album);
     }
 
