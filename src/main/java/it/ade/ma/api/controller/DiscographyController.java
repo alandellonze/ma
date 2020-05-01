@@ -58,6 +58,19 @@ public class DiscographyController {
         }
     }
 
+    @PatchMapping
+    public ResponseEntity equal(@RequestBody DiscographyItem discographyItem) {
+        logger.info("equal({})", discographyItem);
+
+        try {
+            discographyService.equal(discographyItem.getBand(), discographyItem.getAlbumDiff());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @PostMapping()
     public ResponseEntity plus(@RequestBody DiscographyItem discographyItem) {
         logger.info("plus({})", discographyItem);

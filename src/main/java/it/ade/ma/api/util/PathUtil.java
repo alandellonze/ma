@@ -77,8 +77,11 @@ public class PathUtil {
     }
 
     public List<String> getMP3FileNameList(AlbumDTO album) throws IOException {
-        String albumFolder = generateMP3Name(album);
-        return getFileList(albumFolder);
+        String path = generateMP3Name(album);
+        if (!fileExists(path)) {
+            path = generateTMPName(album);
+        }
+        return getFileList(path);
     }
 
     List<String> getFileList(String folder) throws IOException {

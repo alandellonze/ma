@@ -7,6 +7,7 @@ import it.ade.ma.api.model.entity.Band;
 import it.ade.ma.api.repository.BandRepository;
 import it.ade.ma.api.util.DiffService;
 import it.ade.ma.api.util.RipperService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,6 +112,23 @@ public class DiscographyService {
             logger.error(e.getMessage(), e);
         }
         return discographyResult;
+    }
+
+    public void equal(Band band, AlbumDiff albumDiff) {
+        logger.info("equal({}, {})", band, albumDiff);
+
+        // update record
+        AlbumDTO album = albumDiff.getOriginal().get(0);
+        if (StringUtils.isEmpty(album.getMaName())) {
+            album.setMaName(null);
+        }
+        if (StringUtils.isEmpty(album.getMaType())) {
+            album.setMaType(null);
+        }
+        albumService.save(album);
+
+        // adjust discography
+        albumService.adjustPositions(band.getName());
     }
 
     public void plus(Band band, AlbumDiff albumDiff) {

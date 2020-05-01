@@ -49,8 +49,8 @@ public class MP3Util {
         return id3v2TagTemplate;
     }
 
-    public String extractTitleFromFilaName(Mp3File mp3File) {
-        logger.info("extractTitleFromFilaName(mp3File={})", mp3File.getFilename());
+    public String extractTitleFromFileName(Mp3File mp3File) {
+        logger.info("extractTitleFromFileName(mp3File={})", mp3File.getFilename());
 
         String filename = mp3File.getFilename();
         filename = filename.substring(filename.lastIndexOf("/"), filename.length());

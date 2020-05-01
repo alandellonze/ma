@@ -2,7 +2,6 @@ package it.ade.ma.api.sevice;
 
 import com.mpatric.mp3agic.ID3v1;
 import com.mpatric.mp3agic.ID3v2;
-import com.mpatric.mp3agic.ID3v22Tag;
 import com.mpatric.mp3agic.Mp3File;
 import it.ade.ma.api.model.dto.AlbumDTO;
 import it.ade.ma.api.model.enums.MP3Status;
@@ -38,44 +37,62 @@ public class MP3Service {
     void findAndUpdate(List<AlbumDTO> albums) {
         logger.info("findAndUpdate({})", (albums != null ? albums.size() : null));
 
-        albums.forEach(album -> {
-            MP3Status status;
+        if (albums != null) {
+            albums.forEach(album -> {
+                MP3Status status;
 
-            // look into mp3 folder
-            String path = pathUtil.generateMP3Name(album);
-            boolean exists = pathUtil.fileExists(path);
-            if (exists) {
-                status = MP3Status.PRESENT;
-            }
+                // look into mp3 folder
+                String path = pathUtil.generateMP3Name(album);
+                boolean exists = pathUtil.fileExists(path);
+                System.out.println(path + " " + exists);
+                if (exists) {
+                    status = MP3Status.PRESENT;
+                }
 
-            // look into tmp folder
-            else {
-                path = pathUtil.generateTMPName(album);
-                exists = pathUtil.fileExists(path);
-                status = exists ? MP3Status.TMP : MP3Status.NOT_PRESENT;
-            }
+                // look into tmp folder
+                else {
+                    path = pathUtil.generateTMPName(album);
+                    exists = pathUtil.fileExists(path);
+                    System.out.println(path + " " + exists);
+                    status = exists ? MP3Status.TMP : MP3Status.NOT_PRESENT;
+                }
 
-            // update status
-            album.setMp3Status(status);
-        });
+                // update status
+                album.setMp3Status(status);
+            });
+        }
     }
 
     public void adjustAlbumFolder() throws Exception {
         AlbumDTO album = new AlbumDTO();
 
         // test 1
-        album.setBandName("Blaze Bayley");
-        album.setType("FULLLENGTH");
-        album.setTypeCount(6);
-        album.setName("The Redemption Of William Black (Infinite Entanglement Part III)");
-        album.setYear(2018);
+        // album.setBandName("Blaze Bayley");
+        // album.setType("FULLLENGTH");
+        // album.setTypeCount(6);
+        // album.setName("The Redemption Of William Black (Infinite Entanglement Part III)");
+        // album.setYear(2018);
 
         // test 2
-        // album.getBand().setName("Trick Or Treat");
+        // album.setBandName("Avantasia");
+        // album.setType("FULLLENGTH");
+        // album.setTypeCount(8);
+        // album.setName("Moonglow");
+        // album.setYear(2019);
+
+        // test 3
+        // album.setBandName("Trick Or Treat");
         // album.setType("FULLLENGTH");
         // album.setTypeCount(5);
         // album.setName("Re-Animated");
         // album.setYear(2018);
+
+        // test 4
+        album.setBandName("Athlantis");
+        album.setType("FULLLENGTH");
+        album.setTypeCount(5);
+        album.setName("The Way To Rock 'n' Roll");
+        album.setYear(2019);
 
         adjustAlbumFolder(album);
     }
@@ -95,21 +112,20 @@ public class MP3Service {
         logger.info("handleMp3(id3v2TagTemplate, {})", mp3FileName);
 
         try {
-            boolean changed = false;
             Mp3File mp3File = new Mp3File(mp3FileName);
 
             // id3v1 tag
-            changed = changed || handleID3v1Tag(mp3File);
+            boolean changed = handleID3v1Tag(mp3File);
 
             // id3v2 tag
-            changed = changed || handleID3v2Tag(mp3File, id3v2TagTemplate);
+            changed = handleID3v2Tag(mp3File, id3v2TagTemplate) || changed;
 
             // custom tag
-            changed = changed || handleCustomTag(mp3File);
+            changed = handleCustomTag(mp3File) || changed;
+
+            // FIXME normalize file name too
 
             if (changed) {
-                // FIXME normalize file name too
-
                 mp3Util.updateMP3File(mp3File);
             }
         } catch (Exception e) {
@@ -118,7 +134,7 @@ public class MP3Service {
     }
 
     private boolean handleID3v1Tag(Mp3File mp3File) {
-        logger.info("handleID3v1Tag(mp3File={})", mp3File.getFilename());
+        logger.debug("handleID3v1Tag(mp3File={})", mp3File.getFilename());
 
         boolean changed = false;
 
@@ -141,7 +157,7 @@ public class MP3Service {
     }
 
     private boolean handleID3v2Tag(Mp3File mp3File, ID3v2 id3v2TagTemplate) {
-        logger.info("handleID3v2Tag(mp3File={}, id3v2TagTemplate)", mp3File.getFilename());
+        logger.debug("handleID3v2Tag(mp3File={}, id3v2TagTemplate)", mp3File.getFilename());
 
         boolean changed = false;
 
@@ -168,55 +184,60 @@ public class MP3Service {
             logger.debug("URL: {}", id3v2Tag.getUrl());
 
             // substitute tag's values
-            changed = changed || handleID3v2TagFieldsToSubstitute(id3v2Tag, id3v2TagTemplate);
+            changed = handleID3v2TagFieldsToSubstitute(id3v2Tag, id3v2TagTemplate);
 
             // handle image
-            changed = changed || handleID3v2TagImage(id3v2Tag, id3v2TagTemplate);
+            changed = handleID3v2TagImage(id3v2Tag, id3v2TagTemplate) || changed;
 
             // handle track
-            changed = changed || handleID3v2TagTrack(id3v2Tag);
+            changed = handleID3v2TagTrack(id3v2Tag) || changed;
 
             // handle title
-            changed = changed || handleID3v2TagTitle(id3v2Tag, mp3File);
+            changed = handleID3v2TagTitle(id3v2Tag, mp3File) || changed;
 
             // empty tag's values
-            changed = changed || handleID3v2TagFieldsToBeEmpty(id3v2Tag);
+            changed = handleID3v2TagFieldsToBeEmpty(id3v2Tag) || changed;
+        }
+
+        // change the id3v2 tag
+        if (changed) {
+            mp3File.removeId3v2Tag();
+            mp3File.setId3v2Tag(id3v2TagTemplate);
         }
 
         return changed;
     }
-
 
     private boolean handleID3v2TagFieldsToSubstitute(ID3v2 id3v2Tag, ID3v2 id3v2TagTemplate) {
         boolean changed = false;
 
         if (id3v2Tag.getArtist() == null || !id3v2Tag.getArtist().equals(id3v2TagTemplate.getArtist())) {
             logger.info("Artist to be changed: {} - {}", id3v2Tag.getArtist(), id3v2TagTemplate.getArtist());
-            id3v2Tag.setArtist(id3v2TagTemplate.getArtist());
+            // id3v2Tag.setArtist(id3v2TagTemplate.getArtist());
             changed = true;
         }
 
         if (id3v2Tag.getAlbum() == null || !id3v2Tag.getAlbum().equals(id3v2TagTemplate.getAlbum())) {
             logger.info("Album to be changed: {} - {}", id3v2Tag.getAlbum(), id3v2TagTemplate.getAlbum());
-            id3v2Tag.setAlbum(id3v2TagTemplate.getAlbum());
+            // id3v2Tag.setAlbum(id3v2TagTemplate.getAlbum());
             changed = true;
         }
 
         if (id3v2Tag.getYear() == null || !id3v2Tag.getYear().equals(id3v2TagTemplate.getYear())) {
             logger.info("Year to be changed: {} - {}", id3v2Tag.getYear(), id3v2TagTemplate.getYear());
-            id3v2Tag.setYear(id3v2TagTemplate.getYear());
+            // id3v2Tag.setYear(id3v2TagTemplate.getYear());
             changed = true;
         }
 
         if (id3v2Tag.getGenre() != id3v2TagTemplate.getGenre()) {
             logger.info("Genre to be changed: {} - {}", id3v2Tag.getGenre(), id3v2TagTemplate.getGenre());
-            id3v2Tag.setGenre(id3v2TagTemplate.getGenre());
+            // id3v2Tag.setGenre(id3v2TagTemplate.getGenre());
             changed = true;
         }
 
         if (id3v2Tag.getGenreDescription() == null || !id3v2Tag.getGenreDescription().equals(id3v2TagTemplate.getGenreDescription())) {
             logger.info("GenreDescription to be changed: {} - {}", id3v2Tag.getGenreDescription(), id3v2TagTemplate.getGenreDescription());
-            id3v2Tag.setGenreDescription(id3v2TagTemplate.getGenreDescription());
+            // id3v2Tag.setGenreDescription(id3v2TagTemplate.getGenreDescription());
             changed = true;
         }
 
@@ -232,14 +253,14 @@ public class MP3Service {
             if (albumImageDataTemplate != null) {
                 if (albumImageData.length != albumImageDataTemplate.length || !id3v2Tag.getAlbumImageMimeType().equals(id3v2TagTemplate.getAlbumImageMimeType())) {
                     logger.info("AlbumImage to be changed: {}, {} - {}, {}", id3v2Tag.getAlbumImage().length, id3v2Tag.getAlbumImageMimeType(), id3v2TagTemplate.getAlbumImage().length, id3v2TagTemplate.getAlbumImageMimeType());
-                    id3v2Tag.setAlbumImage(id3v2TagTemplate.getAlbumImage(), id3v2TagTemplate.getAlbumImageMimeType());
+                    // id3v2Tag.setAlbumImage(id3v2TagTemplate.getAlbumImage(), id3v2TagTemplate.getAlbumImageMimeType());
                     changed = true;
                 }
             }
         } else {
             if (albumImageDataTemplate != null) {
                 logger.info("AlbumImage to be set: {}, {}", id3v2TagTemplate.getAlbumImage().length, id3v2TagTemplate.getAlbumImageMimeType());
-                id3v2Tag.setAlbumImage(id3v2TagTemplate.getAlbumImage(), id3v2TagTemplate.getAlbumImageMimeType());
+                // id3v2Tag.setAlbumImage(id3v2TagTemplate.getAlbumImage(), id3v2TagTemplate.getAlbumImageMimeType());
                 changed = true;
             }
         }
@@ -265,7 +286,7 @@ public class MP3Service {
         if (StringUtils.isNotEmpty(originalTitle)) {
             title = originalTitle;
         } else {
-            title = mp3Util.extractTitleFromFilaName(mp3File);
+            title = mp3Util.extractTitleFromFileName(mp3File);
         }
 
         // normalize
@@ -274,7 +295,7 @@ public class MP3Service {
         // FIXME handle special substitution (ie: "(BONUS TRACK)", "III", etc...)
 
         if (!title.equals(originalTitle)) {
-            logger.info("Title to be set: {}, {}", title);
+            logger.info("Title to be set: {}", title);
             id3v2Tag.setTitle(title);
             changed = true;
         }
@@ -287,55 +308,55 @@ public class MP3Service {
 
         if (id3v2Tag.getAlbumArtist() != null) {
             logger.info("AlbumArtist to be changed: {} - TO EMPTY", id3v2Tag.getAlbumArtist());
-            id3v2Tag.clearFrameSet(ID3v22Tag.ID_ALBUM_ARTIST);
+            // id3v2Tag.clearFrameSet(ID3v22Tag.ID_ALBUM_ARTIST);
             changed = true;
         }
 
         if (id3v2Tag.getComment() != null) {
             logger.info("Comment to be changed: {} - TO EMPTY", id3v2Tag.getComment());
-            id3v2Tag.clearFrameSet(ID3v22Tag.ID_COMMENT);
+            // id3v2Tag.clearFrameSet(ID3v22Tag.ID_COMMENT);
             changed = true;
         }
 
         if (id3v2Tag.getComposer() != null) {
             logger.info("Composer to be changed: {} - TO EMPTY", id3v2Tag.getComposer());
-            id3v2Tag.clearFrameSet(ID3v22Tag.ID_COMPOSER);
+            // id3v2Tag.clearFrameSet(ID3v22Tag.ID_COMPOSER);
             changed = true;
         }
 
         if (id3v2Tag.getCopyright() != null) {
             logger.info("Copyright to be changed: {} - TO EMPTY", id3v2Tag.getCopyright());
-            id3v2Tag.clearFrameSet(ID3v22Tag.ID_COPYRIGHT);
+            // id3v2Tag.clearFrameSet(ID3v22Tag.ID_COPYRIGHT);
             changed = true;
         }
 
         if (id3v2Tag.getEncoder() != null) {
             logger.info("Encoder to be changed: {} - TO EMPTY", id3v2Tag.getEncoder());
-            id3v2Tag.clearFrameSet(ID3v22Tag.ID_ENCODER);
+            // id3v2Tag.clearFrameSet(ID3v22Tag.ID_ENCODER);
             changed = true;
         }
 
         if (id3v2Tag.getLyrics() != null) {
             logger.info("Lyrics to be changed: {} - TO EMPTY", id3v2Tag.getLyrics());
-            id3v2Tag.clearFrameSet(ID3v22Tag.ID_TEXT_LYRICS);
+            // id3v2Tag.clearFrameSet(ID3v22Tag.ID_TEXT_LYRICS);
             changed = true;
         }
 
         if (id3v2Tag.getOriginalArtist() != null) {
             logger.info("OriginalArtist to be changed: {} - TO EMPTY", id3v2Tag.getOriginalArtist());
-            id3v2Tag.clearFrameSet(ID3v22Tag.ID_ORIGINAL_ARTIST);
+            // id3v2Tag.clearFrameSet(ID3v22Tag.ID_ORIGINAL_ARTIST);
             changed = true;
         }
 
         if (id3v2Tag.getPublisher() != null) {
             logger.info("Publisher to be changed: {} - TO EMPTY", id3v2Tag.getPublisher());
-            id3v2Tag.clearFrameSet(ID3v22Tag.ID_PUBLISHER);
+            // id3v2Tag.clearFrameSet(ID3v22Tag.ID_PUBLISHER);
             changed = true;
         }
 
         if (id3v2Tag.getUrl() != null) {
             logger.info("Url to be changed: {} - TO EMPTY", id3v2Tag.getUrl());
-            id3v2Tag.clearFrameSet(ID3v22Tag.ID_URL);
+            // id3v2Tag.clearFrameSet(ID3v22Tag.ID_URL);
             changed = true;
         }
 
@@ -343,7 +364,7 @@ public class MP3Service {
     }
 
     private boolean handleCustomTag(Mp3File mp3File) {
-        logger.info("handleCustomTag(mp3File={})", mp3File.getFilename());
+        logger.debug("handleCustomTag(mp3File={})", mp3File.getFilename());
 
         boolean changed = false;
 
