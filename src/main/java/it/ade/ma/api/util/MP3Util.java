@@ -1,7 +1,7 @@
 package it.ade.ma.api.util;
 
 import com.mpatric.mp3agic.ID3v2;
-import com.mpatric.mp3agic.ID3v24Tag;
+import com.mpatric.mp3agic.ID3v23Tag;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.NotSupportedException;
 import it.ade.ma.api.model.dto.AlbumDTO;
@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 
 @Component
 public class MP3Util {
@@ -28,22 +27,23 @@ public class MP3Util {
         this.pathUtil = pathUtil;
     }
 
-    private Integer defaultGenre = 9;
-    private String defaultGenreDescription = "Metal";
+    // TODO move into configuration section (or album exceptions list)
+    private static final Integer MP3_TAG_DEFAULT_GENRE = 9;
+    private static final String MP3_TAG_DEFAULT_GENRE_DESCRIPTION = "Metal";
 
     public ID3v2 createID3v2Template(AlbumDTO album) throws IOException {
+        // create the id3v2 template
+        ID3v2 id3v2TagTemplate = new ID3v23Tag();
+        id3v2TagTemplate.setArtist(album.getBandName());
+        id3v2TagTemplate.setAlbum(album.getName());
+        id3v2TagTemplate.setYear(album.getYear().toString());
+        id3v2TagTemplate.setGenre(MP3_TAG_DEFAULT_GENRE);
+        id3v2TagTemplate.setGenreDescription(MP3_TAG_DEFAULT_GENRE_DESCRIPTION);
+
         // get cover from disk
         String albumCover = pathUtil.generateCoverName(album);
         byte[] albumCoverImage = Files.readAllBytes(Paths.get(albumCover));
         String albumCoverMime = "image/jpeg";
-
-        // create the id3v2 template
-        ID3v2 id3v2TagTemplate = new ID3v24Tag();
-        id3v2TagTemplate.setArtist(album.getBandName());
-        id3v2TagTemplate.setAlbum(album.getName());
-        id3v2TagTemplate.setYear(album.getYear().toString());
-        id3v2TagTemplate.setGenre(defaultGenre);
-        id3v2TagTemplate.setGenreDescription(defaultGenreDescription);
         id3v2TagTemplate.setAlbumImage(albumCoverImage, albumCoverMime);
 
         return id3v2TagTemplate;
@@ -53,9 +53,9 @@ public class MP3Util {
         logger.info("extractTitleFromFileName(mp3File={})", mp3File.getFilename());
 
         String filename = mp3File.getFilename();
-        filename = filename.substring(filename.lastIndexOf("/"), filename.length());
-        filename = filename.substring(filename.indexOf("-"), filename.length());
-        filename = filename.substring(filename.indexOf(".mp3"));
+        filename = filename.substring(filename.lastIndexOf("/") + 1, filename.length());
+        filename = filename.substring(filename.indexOf("-") + 1, filename.length());
+        filename = filename.substring(0, filename.indexOf(".mp3"));
         return filename.trim();
     }
 
