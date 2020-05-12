@@ -5,6 +5,7 @@ import com.mpatric.mp3agic.ID3v23Tag;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.NotSupportedException;
 import it.ade.ma.api.model.dto.AlbumDTO;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +32,11 @@ public class MP3Util {
     private static final Integer MP3_TAG_DEFAULT_GENRE = 9;
     private static final String MP3_TAG_DEFAULT_GENRE_DESCRIPTION = "Metal";
 
-    public ID3v2 createID3v2Template(AlbumDTO album) throws IOException {
+    public ID3v2 createID3v2Template(String cdName, AlbumDTO album) throws IOException {
         // create the id3v2 template
         ID3v2 id3v2TagTemplate = new ID3v23Tag();
         id3v2TagTemplate.setArtist(album.getBandName());
-        id3v2TagTemplate.setAlbum(album.getName());
+        id3v2TagTemplate.setAlbum(album.getName() + (StringUtils.isNotBlank(cdName) ? (" - " + cdName) : ""));
         id3v2TagTemplate.setYear(album.getYear().toString());
         id3v2TagTemplate.setGenre(MP3_TAG_DEFAULT_GENRE);
         id3v2TagTemplate.setGenreDescription(MP3_TAG_DEFAULT_GENRE_DESCRIPTION);

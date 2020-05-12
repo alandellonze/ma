@@ -5,13 +5,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class PathUtil {
@@ -29,34 +25,16 @@ public class PathUtil {
     private String maPathMP3;
 
     public String generateTMPName(AlbumDTO album) {
-        StringBuilder folderName = new StringBuilder(maPathMain).append(maPathTMP);
-
-        // add band folder
-        folderName.append(album.getBandName()).append(" - ");
-
-        folderName.append(generateAlbumName(album));
-        return folderName.toString();
+        return maPathMain + maPathTMP + album.getBandName() + " - " + generateAlbumName(album);
     }
 
     // FIXME cover image: it couldn't be a jpg image...
     public String generateCoverName(AlbumDTO album) {
-        StringBuilder folderName = new StringBuilder(maPathMain).append(maPathCover);
-
-        // add band folder
-        folderName.append(album.getBandName()).append("/");
-
-        folderName.append(generateAlbumName(album)).append(".jpg");
-        return folderName.toString();
+        return maPathMain + maPathCover + album.getBandName() + "/" + generateAlbumName(album) + ".jpg";
     }
 
     public String generateMP3Name(AlbumDTO album) {
-        StringBuilder folderName = new StringBuilder(maPathMain).append(maPathMP3);
-
-        // add band folder
-        folderName.append(album.getBandName()).append("/");
-
-        folderName.append(generateAlbumName(album));
-        return folderName.toString();
+        return maPathMain + maPathMP3 + album.getBandName() + "/" + generateAlbumName(album);
     }
 
     private String generateAlbumName(AlbumDTO album) {
@@ -76,28 +54,39 @@ public class PathUtil {
         return folderName.toString();
     }
 
-    public List<String> getMP3FileNameList(AlbumDTO album) throws IOException {
-        String path = generateMP3Name(album);
-        if (!fileExists(path)) {
-            path = generateTMPName(album);
+    public Map<String, List<String>> getMP3FileNameMap(AlbumDTO album) throws IOException {
+        String folderName = generateMP3Name(album);
+        if (!fileExists(folderName)) {
+            folderName = generateTMPName(album);
         }
-        return getFileList(path);
+        return getFileNameMap(folderName);
     }
 
-    List<String> getFileList(String folder) throws IOException {
-        List<String> fileList = new ArrayList<>();
+    private Map<String, List<String>> getFileNameMap(String folderName) throws IOException {
+        Map<String, List<String>> fileMap = new HashMap<>();
 
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(folder))) {
-            for (Path path : stream) {
-                if (!Files.isDirectory(path)) {
-                    fileList.add(folder + "/" + path.getFileName().toString());
-                }
-            }
-        }
+        Files.walk(Paths.get(folderName))
+                // FIXME put - flac and .mp3 in configurations
+                .filter(path -> (!path.toString().contains("- flac") && path.toString().endsWith(".mp3")))
+                .sorted()
+                .forEach(path -> {
+                    // get the sub folder (if exists)
+                    String dirName = path.toString().replace(folderName + "/", "");
+                    String dirParts[] = dirName.split("/");
+                    String cd = dirParts.length > 1 ? String.join(" - ", Arrays.copyOf(dirParts, dirParts.length - 1)) : "";
 
-        Collections.sort(fileList);
-        return fileList;
+                    // insert the mp3 name grouped by sub folders
+                    List<String> files = fileMap.get(cd);
+                    if (files == null) {
+                        files = new LinkedList<>();
+                        fileMap.put(cd, files);
+                    }
+                    files.add(path.toString());
+                });
+
+        return fileMap;
     }
+
 
     public boolean fileExists(String path) {
         return Files.exists(Paths.get(path));

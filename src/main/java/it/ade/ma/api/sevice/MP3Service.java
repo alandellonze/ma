@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class MP3Service {
@@ -73,14 +74,20 @@ public class MP3Service {
         // get the Album
         AlbumDTO album = albumService.findById(albumId);
 
-        // create the id3v2 template
-        ID3v2 id3v2TagTemplate = mp3Util.createID3v2Template(album);
-
         // adjust all the mp3 files
-        List<String> mp3FileNames = pathUtil.getMP3FileNameList(album);
-        logger.info("found {} files for '{}'", mp3FileNames.size(), album);
-        for (int i = 0; i < mp3FileNames.size(); i++) {
-            handleMp3(mp3FileNames.get(i), i + 1, id3v2TagTemplate);
+        Map<String, List<String>> mp3FileNameMap = pathUtil.getMP3FileNameMap(album);
+        logger.info("found {} cd for '{}'", mp3FileNameMap.size(), album);
+        for (Map.Entry<String, List<String>> entry : mp3FileNameMap.entrySet()) {
+            // create the id3v2 template
+            String cdName = entry.getKey();
+            ID3v2 id3v2TagTemplate = mp3Util.createID3v2Template(cdName, album);
+
+            // handle files
+            List<String> mp3FileNames = entry.getValue();
+            logger.info("found {} files for '{}'", mp3FileNames.size(), id3v2TagTemplate.getAlbum());
+            for (int i = 0; i < mp3FileNames.size(); i++) {
+                handleMp3(mp3FileNames.get(i), i + 1, id3v2TagTemplate);
+            }
         }
     }
 
@@ -268,6 +275,8 @@ public class MP3Service {
         String normalizedTitle = WordUtils.capitalize(title);
 
         // FIXME handle special substitution (ie: "(BONUS TRACK)", "III", etc...)
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(BONUS TRACK\\)", " (BONUS TRACK)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(INSTRUMENTAL VERSION\\)", " (INSTRUMENTAL VERSION)");
 
         return normalizedTitle;
     }
