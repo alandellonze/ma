@@ -275,10 +275,15 @@ public class MP3Service {
         String normalizedTitle = WordUtils.capitalize(title);
 
         // FIXME handle special substitution (ie: "(BONUS TRACK)", "III", etc...)
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(2008 VERSION\\)", " (2008 VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(2010 VERSION\\)", " (2010 VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ACOUSTIC VERSION\\)", " (ACOUSTIC VERSION)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(BONUS TRACK\\)", " (BONUS TRACK)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(DEMO\\)", " (DEMO)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(INSTRUMENTAL\\)", " (INSTRUMENTAL VERSION)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(INSTRUMENTAL VERSION\\)", " (INSTRUMENTAL VERSION)");
 
-        return normalizedTitle;
+        return normalizedTitle.trim();
     }
 
     private void handleCustomTag(Mp3File mp3File) {

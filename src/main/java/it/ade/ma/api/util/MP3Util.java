@@ -1,7 +1,7 @@
 package it.ade.ma.api.util;
 
 import com.mpatric.mp3agic.ID3v2;
-import com.mpatric.mp3agic.ID3v23Tag;
+import com.mpatric.mp3agic.ID3v24Tag;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.NotSupportedException;
 import it.ade.ma.api.model.dto.AlbumDTO;
@@ -34,7 +34,7 @@ public class MP3Util {
 
     public ID3v2 createID3v2Template(String cdName, AlbumDTO album) throws IOException {
         // create the id3v2 template
-        ID3v2 id3v2TagTemplate = new ID3v23Tag();
+        ID3v2 id3v2TagTemplate = new ID3v24Tag();
         id3v2TagTemplate.setArtist(album.getBandName());
         id3v2TagTemplate.setAlbum(album.getName() + (StringUtils.isNotBlank(cdName) ? (" - " + cdName) : ""));
         id3v2TagTemplate.setYear(album.getYear().toString());

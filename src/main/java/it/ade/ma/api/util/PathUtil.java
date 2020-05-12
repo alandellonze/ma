@@ -49,7 +49,7 @@ public class PathUtil {
 
         // add name
         String name = (album.getMaName() != null) ? album.getMaName() : album.getName();
-        folderName.append(" - ").append(name);
+        folderName.append(" - ").append(name.replaceAll(":", " -"));
 
         return folderName.toString();
     }
@@ -63,7 +63,7 @@ public class PathUtil {
     }
 
     private Map<String, List<String>> getFileNameMap(String folderName) throws IOException {
-        Map<String, List<String>> fileMap = new HashMap<>();
+        Map<String, List<String>> fileMap = new LinkedHashMap<>();
 
         Files.walk(Paths.get(folderName))
                 // FIXME put - flac and .mp3 in configurations
@@ -76,11 +76,7 @@ public class PathUtil {
                     String cd = dirParts.length > 1 ? String.join(" - ", Arrays.copyOf(dirParts, dirParts.length - 1)) : "";
 
                     // insert the mp3 name grouped by sub folders
-                    List<String> files = fileMap.get(cd);
-                    if (files == null) {
-                        files = new LinkedList<>();
-                        fileMap.put(cd, files);
-                    }
+                    List<String> files = fileMap.computeIfAbsent(cd, f -> new LinkedList<>());
                     files.add(path.toString());
                 });
 
