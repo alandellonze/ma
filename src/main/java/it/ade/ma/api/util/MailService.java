@@ -2,7 +2,6 @@ package it.ade.ma.api.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -15,17 +14,21 @@ public class MailService {
 
     private final static Logger logger = LoggerFactory.getLogger(MailService.class);
 
-    @Autowired
+    private String from;
+    private String fromName;
+    private String to;
     private JavaMailSender javaMailSender;
 
-    @Value("${mail.from}")
-    private String from;
-
-    @Value("${mail.fromName}")
-    private String fromName;
-
-    @Value("${mail.to}")
-    private String to;
+    public MailService(
+            @Value("${mail.from}") String from,
+            @Value("${mail.fromName}") String fromName,
+            @Value("${mail.to}") String to,
+            JavaMailSender javaMailSender) {
+        this.from = from;
+        this.fromName = fromName;
+        this.to = to;
+        this.javaMailSender = javaMailSender;
+    }
 
     public void sendEmail(String subject, String text) {
         try {

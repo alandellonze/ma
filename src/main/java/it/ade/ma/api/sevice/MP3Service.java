@@ -7,17 +7,18 @@ import it.ade.ma.api.model.dto.AlbumDTO;
 import it.ade.ma.api.model.enums.MP3Status;
 import it.ade.ma.api.util.MP3Util;
 import it.ade.ma.api.util.PathUtil;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 
 @Service
+@AllArgsConstructor
 public class MP3Service {
 
     private final static Logger logger = LoggerFactory.getLogger(MP3Service.class);
@@ -25,21 +26,6 @@ public class MP3Service {
     private AlbumService albumService;
     private PathUtil pathUtil;
     private MP3Util mp3Util;
-
-    @Autowired
-    public void setAlbumService(AlbumService albumService) {
-        this.albumService = albumService;
-    }
-
-    @Autowired
-    public void setPathUtil(PathUtil pathUtil) {
-        this.pathUtil = pathUtil;
-    }
-
-    @Autowired
-    public void setMp3Util(MP3Util mp3Util) {
-        this.mp3Util = mp3Util;
-    }
 
     void findAndUpdate(List<AlbumDTO> albums) {
         logger.info("findAndUpdate({})", (albums != null ? albums.size() : null));
@@ -106,9 +92,7 @@ public class MP3Service {
             // custom tag
             handleCustomTag(mp3File);
 
-            // FIXME normalize file name too
-
-            // save
+            // save and normalize file name
             mp3Util.updateMP3File(mp3File);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -164,7 +148,7 @@ public class MP3Service {
         }
 
         // handle track
-        handleID3v2TagTrack(id3v2TagTemplate, position);
+        handleID3v2TagTrack(position, id3v2TagTemplate, id3v2Tag);
 
         // handle title
         handleID3v2TagTitle(mp3File, id3v2TagTemplate, id3v2Tag);
@@ -176,23 +160,23 @@ public class MP3Service {
 
     private void logID3v2TagFieldsToBeChanged(ID3v2 id3v2Tag, ID3v2 id3v2TagTemplate) {
         if (id3v2Tag.getArtist() == null || !id3v2Tag.getArtist().equals(id3v2TagTemplate.getArtist())) {
-            logger.info("Artist to be changed: {} - {}", id3v2Tag.getArtist(), id3v2TagTemplate.getArtist());
+            logger.info("Artist to be changed: {} => {}", id3v2Tag.getArtist(), id3v2TagTemplate.getArtist());
         }
 
         if (id3v2Tag.getAlbum() == null || !id3v2Tag.getAlbum().equals(id3v2TagTemplate.getAlbum())) {
-            logger.info("Album to be changed: {} - {}", id3v2Tag.getAlbum(), id3v2TagTemplate.getAlbum());
+            logger.info("Album to be changed: {} => {}", id3v2Tag.getAlbum(), id3v2TagTemplate.getAlbum());
         }
 
         if (id3v2Tag.getYear() == null || !id3v2Tag.getYear().equals(id3v2TagTemplate.getYear())) {
-            logger.info("Year to be changed: {} - {}", id3v2Tag.getYear(), id3v2TagTemplate.getYear());
+            logger.info("Year to be changed: {} => {}", id3v2Tag.getYear(), id3v2TagTemplate.getYear());
         }
 
         if (id3v2Tag.getGenre() != id3v2TagTemplate.getGenre()) {
-            logger.info("Genre to be changed: {} - {}", id3v2Tag.getGenre(), id3v2TagTemplate.getGenre());
+            logger.info("Genre to be changed: {} => {}", id3v2Tag.getGenre(), id3v2TagTemplate.getGenre());
         }
 
         if (id3v2Tag.getGenreDescription() == null || !id3v2Tag.getGenreDescription().equals(id3v2TagTemplate.getGenreDescription())) {
-            logger.info("GenreDescription to be changed: {} - {}", id3v2Tag.getGenreDescription(), id3v2TagTemplate.getGenreDescription());
+            logger.info("GenreDescription to be changed: {} => {}", id3v2Tag.getGenreDescription(), id3v2TagTemplate.getGenreDescription());
         }
 
         byte[] albumImageData = id3v2Tag.getAlbumImage();
@@ -200,7 +184,7 @@ public class MP3Service {
         if (albumImageData != null) {
             if (albumImageDataTemplate != null) {
                 if (albumImageData.length != albumImageDataTemplate.length || !id3v2Tag.getAlbumImageMimeType().equals(id3v2TagTemplate.getAlbumImageMimeType())) {
-                    logger.info("AlbumImage to be changed: {}, {} - {}, {}", id3v2Tag.getAlbumImage().length, id3v2Tag.getAlbumImageMimeType(), id3v2TagTemplate.getAlbumImage().length, id3v2TagTemplate.getAlbumImageMimeType());
+                    logger.info("AlbumImage to be changed: {}, {} => {}, {}", id3v2Tag.getAlbumImage().length, id3v2Tag.getAlbumImageMimeType(), id3v2TagTemplate.getAlbumImage().length, id3v2TagTemplate.getAlbumImageMimeType());
                 }
             }
         } else {
@@ -210,46 +194,56 @@ public class MP3Service {
         }
 
         if (id3v2Tag.getAlbumArtist() != null) {
-            logger.info("AlbumArtist to be changed: {} - TO EMPTY", id3v2Tag.getAlbumArtist());
+            logger.info("AlbumArtist to be changed: {} => TO EMPTY", id3v2Tag.getAlbumArtist());
         }
 
         if (id3v2Tag.getComment() != null) {
-            logger.info("Comment to be changed: {} - TO EMPTY", id3v2Tag.getComment());
+            logger.info("Comment to be changed: {} => TO EMPTY", id3v2Tag.getComment());
         }
 
         if (id3v2Tag.getComposer() != null) {
-            logger.info("Composer to be changed: {} - TO EMPTY", id3v2Tag.getComposer());
+            logger.info("Composer to be changed: {} => TO EMPTY", id3v2Tag.getComposer());
         }
 
         if (id3v2Tag.getCopyright() != null) {
-            logger.info("Copyright to be changed: {} - TO EMPTY", id3v2Tag.getCopyright());
+            logger.info("Copyright to be changed: {} => TO EMPTY", id3v2Tag.getCopyright());
         }
 
         if (id3v2Tag.getEncoder() != null) {
-            logger.info("Encoder to be changed: {} - TO EMPTY", id3v2Tag.getEncoder());
+            logger.info("Encoder to be changed: {} => TO EMPTY", id3v2Tag.getEncoder());
         }
 
         if (id3v2Tag.getLyrics() != null) {
-            logger.info("Lyrics to be changed: {} - TO EMPTY", id3v2Tag.getLyrics());
+            logger.info("Lyrics to be changed: {} => TO EMPTY", id3v2Tag.getLyrics());
         }
 
         if (id3v2Tag.getOriginalArtist() != null) {
-            logger.info("OriginalArtist to be changed: {} - TO EMPTY", id3v2Tag.getOriginalArtist());
+            logger.info("OriginalArtist to be changed: {} => TO EMPTY", id3v2Tag.getOriginalArtist());
         }
 
         if (id3v2Tag.getPublisher() != null) {
-            logger.info("Publisher to be changed: {} - TO EMPTY", id3v2Tag.getPublisher());
+            logger.info("Publisher to be changed: {} => TO EMPTY", id3v2Tag.getPublisher());
         }
 
         if (id3v2Tag.getUrl() != null) {
-            logger.info("Url to be changed: {} - TO EMPTY", id3v2Tag.getUrl());
+            logger.info("Url to be changed: {} => TO EMPTY", id3v2Tag.getUrl());
         }
     }
 
-    private void handleID3v2TagTrack(ID3v2 id3v2TagTemplate, int position) {
-        // FIXME calculate the current position against the total items found in the folder
+    private void handleID3v2TagTrack(int position, ID3v2 id3v2TagTemplate, ID3v2 id3v2Tag) {
+        // get original track
+        String originalTrack = id3v2Tag == null ? null : id3v2Tag.getTrack();
 
-        id3v2TagTemplate.setTrack(String.format("%02d", position));
+        // prepare track
+        String track = String.format("%02d", position);
+
+        // log changes
+        if (!track.equals(originalTrack)) {
+            logger.info("Track to be changed: {} => {}", originalTrack, track);
+        }
+
+        // set track to template
+        id3v2TagTemplate.setTrack(track);
     }
 
     private void handleID3v2TagTitle(Mp3File mp3File, ID3v2 id3v2TagTemplate, ID3v2 id3v2Tag) {
@@ -257,14 +251,14 @@ public class MP3Service {
         String originalTitle = id3v2Tag == null ? null : id3v2Tag.getTitle();
 
         // get title from original tag or from file name
-        String title = StringUtils.isNotBlank(originalTitle) ? originalTitle : mp3Util.extractTitleFromFileName(mp3File);
+        String title = StringUtils.isNotBlank(originalTitle) ? originalTitle : mp3Util.extractTitleFromMp3File(mp3File);
 
         // normalize title
         title = normalizeID3v2TagTitle(title);
 
         // log changes
         if (!title.equals(originalTitle)) {
-            logger.info("Title to be changed: {} - {}", originalTitle, title);
+            logger.info("Title to be changed: {} => {}", originalTitle, title);
         }
 
         // set title to template
@@ -274,14 +268,48 @@ public class MP3Service {
     private String normalizeID3v2TagTitle(String title) {
         String normalizedTitle = WordUtils.capitalize(title);
 
+        normalizedTitle = normalizedTitle.replaceAll("´", "'");
+
         // FIXME handle special substitution (ie: "(BONUS TRACK)", "III", etc...)
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(2008 VERSION\\)", " (2008 VERSION)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(2010 VERSION\\)", " (2010 VERSION)");
+
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ACOUSTIC VERSION\\)", " (ACOUSTIC VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ACOUSTIC\\)", " (ACOUSTIC VERSION)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(APOCALYPSE VERSION\\)", " (APOCALYPSE VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(APOCALYPSE\\)", " (APOCALYPSE VERSION)");
+
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(BONUS TRACK\\)", " (BONUS TRACK)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(BONUS\\)", " (BONUS TRACK)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) COVER\\)", " COVER)");
+
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(DEMO\\)", " (DEMO)");
-        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(INSTRUMENTAL\\)", " (INSTRUMENTAL VERSION)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(HISTORY VERSION\\)", " (HISTORY VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(HISTORY\\)", " (HISTORY VERSION)");
+
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(INSTRUMENTAL VERSION\\)", " (INSTRUMENTAL VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(INSTRUMENTAL\\)", " (INSTRUMENTAL VERSION)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(JAP BONUS TRACK\\)", " (JAP BONUS TRACK)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(JAPAN BONUS TRACK\\)", " (JAP BONUS TRACK)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(LIVE\\)", " (LIVE)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(LIVE 2012\\)", " (LIVE)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ORCHESTRAL VERSION\\)", " (ORCHESTRAL VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ORCHESTRAL\\)", " (ORCHESTRAL VERSION)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(RE-RECORDED VERSION\\)", " (RE-RECORDED VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(RE-RECORDED\\)", " (RE-RECORDED VERSION)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(SOUNDTRACK VERSION\\)", " (SOUNDTRACK VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(SOUNDTRACK\\)", " (SOUNDTRACK VERSION)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(STUDIO JAM VERSION\\)", " (STUDIO JAM VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(STUDIO JAM\\)", " (STUDIO JAM VERSION)");
 
         return normalizedTitle.trim();
     }

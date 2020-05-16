@@ -7,15 +7,16 @@ import it.ade.ma.api.model.entity.Band;
 import it.ade.ma.api.repository.BandRepository;
 import it.ade.ma.api.util.DiffService;
 import it.ade.ma.api.util.RipperService;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class DiscographyService {
 
     private final static Logger logger = LoggerFactory.getLogger(DiscographyService.class);
@@ -28,43 +29,8 @@ public class DiscographyService {
     private DiffService diffService;
     private NotificationService notificationService;
 
-    @Autowired
-    public void setBandRepository(BandRepository bandRepository) {
-        this.bandRepository = bandRepository;
-    }
-
-    @Autowired
-    public void setAlbumService(AlbumService albumService) {
-        this.albumService = albumService;
-    }
-
-    @Autowired
-    public void setMp3Service(MP3Service mp3Service) {
-        this.mp3Service = mp3Service;
-    }
-
-    @Autowired
-    public void setCoverService(CoverService coverService) {
-        this.coverService = coverService;
-    }
-
-    @Autowired
-    public void setRipperService(RipperService ripperService) {
-        this.ripperService = ripperService;
-    }
-
-    @Autowired
-    public void setDiffService(DiffService diffService) {
-        this.diffService = diffService;
-    }
-
-    @Autowired
-    public void setNotificationService(NotificationService notificationService) {
-        this.notificationService = notificationService;
-    }
-
-    public void adjustAllPositions() {
-        logger.info("adjustAllPositions()");
+    public void adjustPositions() {
+        logger.info("adjustPositions()");
 
         List<Band> bands = bandRepository.findAllByMaKeyNotNullOrderByName();
         bands.forEach(band -> albumService.adjustPositions(band.getName()));

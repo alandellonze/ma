@@ -43,7 +43,7 @@ public class AlbumTypeService {
 
             .build();
 
-    public String normalize(String type) throws AlbumTypeNormalizationNotFoundException {
+    String normalize(String type) throws AlbumTypeNormalizationNotFoundException {
         String typeNormalized = types.get(type);
 
         if (typeNormalized == null) {
@@ -54,7 +54,7 @@ public class AlbumTypeService {
         return typeNormalized;
     }
 
-    public Integer calculateCount(Map<String, Integer> typeCounts, String type) {
+    Integer calculateCount(Map<String, Integer> typeCounts, String type) {
         Integer typeCount = typeCounts.get(type);
         if (typeCount == null) {
             typeCount = 0;

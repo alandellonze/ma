@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>it.ade</groupId>
 	<artifactId>ma-api</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<name>ma-api</name>
 	<description>Metal Archives API</description>
 

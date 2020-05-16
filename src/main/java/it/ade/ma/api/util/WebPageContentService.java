@@ -3,6 +3,7 @@ package it.ade.ma.api.util;
 import it.ade.ma.api.model.dto.WebPageAlbum;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +20,12 @@ public class WebPageContentService {
 
     private final static Logger logger = LoggerFactory.getLogger(WebPageContentService.class);
 
-    @Value("${ma.metal-archives.url}")
     private String maMetalArchivesUrl;
+
+    public WebPageContentService(
+            @Value("${ma.metal-archives.url}") String maMetalArchivesUrl) {
+        this.maMetalArchivesUrl = maMetalArchivesUrl;
+    }
 
     List<WebPageAlbum> parse(Long bandMAKey) throws IOException {
         logger.info("parse({})", bandMAKey);
@@ -34,7 +39,7 @@ public class WebPageContentService {
 
         // extract all the td's html content
         Elements tds = doc.select("td");
-        List<String> tdsHtmlContent = tds.stream().map(td -> td.html()).collect(Collectors.toList());
+        List<String> tdsHtmlContent = tds.stream().map(Element::html).collect(Collectors.toList());
 
         // group tds 4 by 4
         for (int i = 0; i < tdsHtmlContent.size(); i = i + 4) {

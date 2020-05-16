@@ -8,7 +8,6 @@ import it.ade.ma.api.model.entity.Band;
 import it.ade.ma.api.util.MailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -20,13 +19,13 @@ public class NotificationService {
 
     private final static Logger logger = LoggerFactory.getLogger(NotificationService.class);
 
-    @Value("${ma.metal-archives.url}")
     private String maMetalArchivesUrl;
-
     private MailService mailService;
 
-    @Autowired
-    public void setMailService(MailService mailService) {
+    public NotificationService(
+            @Value("${ma.metal-archives.url}") String maMetalArchivesUrl,
+            MailService mailService) {
+        this.maMetalArchivesUrl = maMetalArchivesUrl;
         this.mailService = mailService;
     }
 

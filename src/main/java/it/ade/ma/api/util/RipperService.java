@@ -4,10 +4,10 @@ import com.google.common.collect.Maps;
 import it.ade.ma.api.exception.AlbumTypeNormalizationNotFoundException;
 import it.ade.ma.api.model.dto.AlbumDTO;
 import it.ade.ma.api.model.dto.WebPageAlbum;
+import lombok.AllArgsConstructor;
 import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -16,22 +16,13 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@AllArgsConstructor
 public class RipperService {
 
     private final static Logger logger = LoggerFactory.getLogger(RipperService.class);
 
-    private WebPageContentService webPageContentService;
     private AlbumTypeService albumTypeService;
-
-    @Autowired
-    public void setWebPageContentService(WebPageContentService webPageContentService) {
-        this.webPageContentService = webPageContentService;
-    }
-
-    @Autowired
-    public void setAlbumTypeService(AlbumTypeService albumTypeService) {
-        this.albumTypeService = albumTypeService;
-    }
+    private WebPageContentService webPageContentService;
 
     public List<AlbumDTO> execute(Long bandMAKey) throws IOException {
         logger.info("execute({})", bandMAKey);

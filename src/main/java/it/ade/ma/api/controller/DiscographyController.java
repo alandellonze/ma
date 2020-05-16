@@ -3,27 +3,27 @@ package it.ade.ma.api.controller;
 import it.ade.ma.api.model.dto.DiscographyItem;
 import it.ade.ma.api.model.dto.DiscographyResult;
 import it.ade.ma.api.sevice.DiscographyService;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/discography")
 public class DiscographyController {
 
     private final static Logger logger = LoggerFactory.getLogger(DiscographyController.class);
 
-    @Autowired
     private DiscographyService discographyService;
 
-    @GetMapping("/adjustAllPositions")
-    public ResponseEntity adjustAllPositions() {
-        logger.info("adjustAllPositions()");
+    @GetMapping("/all/adjustPositions")
+    public ResponseEntity adjustPositions() {
+        logger.info("adjustPositions()");
 
         try {
-            discographyService.adjustAllPositions();
+            discographyService.adjustPositions();
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -31,7 +31,7 @@ public class DiscographyController {
         }
     }
 
-    @GetMapping()
+    @GetMapping("/all")
     public ResponseEntity getAll() {
         logger.info("getAll()");
 
@@ -45,8 +45,8 @@ public class DiscographyController {
     }
 
 
-    @GetMapping("/{bandName}")
-    public ResponseEntity getOne(@PathVariable String bandName, @RequestParam(defaultValue = "false") boolean sendNotification) {
+    @GetMapping
+    public ResponseEntity getOne(@RequestParam String bandName, @RequestParam(defaultValue = "false") boolean sendNotification) {
         logger.info("getOne({}, {})", bandName, sendNotification);
 
         try {
@@ -71,7 +71,7 @@ public class DiscographyController {
         }
     }
 
-    @PostMapping()
+    @PostMapping
     public ResponseEntity plus(@RequestBody DiscographyItem discographyItem) {
         logger.info("plus({})", discographyItem);
 
@@ -84,7 +84,7 @@ public class DiscographyController {
         }
     }
 
-    @PutMapping()
+    @PutMapping
     public ResponseEntity change(@RequestBody DiscographyItem discographyItem) {
         logger.info("change({})", discographyItem);
 

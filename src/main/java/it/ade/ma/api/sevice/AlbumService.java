@@ -1,13 +1,13 @@
 package it.ade.ma.api.sevice;
 
+import it.ade.ma.api.model.dto.AlbumDTO;
 import it.ade.ma.api.model.entity.Album;
 import it.ade.ma.api.model.entity.Band;
-import it.ade.ma.api.model.dto.AlbumDTO;
 import it.ade.ma.api.repository.AlbumRepository;
+import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,22 +15,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class AlbumService {
 
     private final static Logger logger = LoggerFactory.getLogger(AlbumService.class);
 
     private ModelMapper modelMapper;
     private AlbumRepository albumRepository;
-
-    @Autowired
-    public void setModelMapper(ModelMapper modelMapper) {
-        this.modelMapper = modelMapper;
-    }
-
-    @Autowired
-    public void setAlbumRepository(AlbumRepository albumRepository) {
-        this.albumRepository = albumRepository;
-    }
 
     private AlbumDTO convertToDTO(Album album) {
         if (album != null) {

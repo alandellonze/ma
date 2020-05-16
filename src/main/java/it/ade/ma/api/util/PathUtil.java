@@ -25,16 +25,16 @@ public class PathUtil {
     private String maPathMP3;
 
     public String generateTMPName(AlbumDTO album) {
-        return maPathMain + maPathTMP + album.getBandName() + " - " + generateAlbumName(album);
+        return maPathMain + maPathTMP + normalizeName(album.getBandName()) + " - " + generateAlbumName(album);
     }
 
     // FIXME cover image: it couldn't be a jpg image...
     public String generateCoverName(AlbumDTO album) {
-        return maPathMain + maPathCover + album.getBandName() + "/" + generateAlbumName(album) + ".jpg";
+        return maPathMain + maPathCover + normalizeName(album.getBandName()) + "/" + generateAlbumName(album) + ".jpg";
     }
 
     public String generateMP3Name(AlbumDTO album) {
-        return maPathMain + maPathMP3 + album.getBandName() + "/" + generateAlbumName(album);
+        return maPathMain + maPathMP3 + normalizeName(album.getBandName()) + "/" + generateAlbumName(album);
     }
 
     private String generateAlbumName(AlbumDTO album) {
@@ -49,9 +49,15 @@ public class PathUtil {
 
         // add name
         String name = (album.getMaName() != null) ? album.getMaName() : album.getName();
-        folderName.append(" - ").append(name.replaceAll(":", " -"));
+        folderName.append(" - ").append(normalizeName(name));
 
         return folderName.toString();
+    }
+
+    public String normalizeName(String name) {
+        name = name.replaceAll(":", " -");
+        name = name.replaceAll("/", "-");
+        return name;
     }
 
     public Map<String, List<String>> getMP3FileNameMap(AlbumDTO album) throws IOException {
@@ -70,10 +76,14 @@ public class PathUtil {
                 .filter(path -> (!path.toString().contains("- flac") && path.toString().endsWith(".mp3")))
                 .sorted()
                 .forEach(path -> {
+                    String cd = null;
+
                     // get the sub folder (if exists)
-                    String dirName = path.toString().replace(folderName + "/", "");
-                    String dirParts[] = dirName.split("/");
-                    String cd = dirParts.length > 1 ? String.join(" - ", Arrays.copyOf(dirParts, dirParts.length - 1)) : "";
+                    int folderNamePartsSize = folderName.split("/").length;
+                    List<String> dirParts = Arrays.asList(path.toString().split("/"));
+                    if (folderNamePartsSize < dirParts.size() - 1) {
+                        cd = String.join(" - ", dirParts.subList(folderNamePartsSize, dirParts.size() - 1));
+                    }
 
                     // insert the mp3 name grouped by sub folders
                     List<String> files = fileMap.computeIfAbsent(cd, f -> new LinkedList<>());
