@@ -299,8 +299,12 @@ public class MP3Service {
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(LIVE\\)", " (LIVE)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(LIVE 2012\\)", " (LIVE)");
 
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(LIVE ACOUSTIC REHEARSAL VERSION\\)", " (LIVE ACOUSTIC REHEARSAL VERSION)");
+
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ORCHESTRAL VERSION\\)", " (ORCHESTRAL VERSION)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ORCHESTRAL\\)", " (ORCHESTRAL VERSION)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(PIANO AND VOCAL VERSION\\)", " (PIANO AND VOCAL VERSION)");
 
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(RE-RECORDED VERSION\\)", " (RE-RECORDED VERSION)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(RE-RECORDED\\)", " (RE-RECORDED VERSION)");
