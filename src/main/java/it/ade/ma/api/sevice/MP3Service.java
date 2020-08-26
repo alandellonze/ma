@@ -277,6 +277,8 @@ public class MP3Service {
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ACOUSTIC VERSION\\)", " (ACOUSTIC VERSION)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ACOUSTIC\\)", " (ACOUSTIC VERSION)");
 
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ALTERNATIVE MIX\\)", " (ALTERNATIVE MIX)");
+
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(APOCALYPSE VERSION\\)", " (APOCALYPSE VERSION)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(APOCALYPSE\\)", " (APOCALYPSE VERSION)");
 
@@ -285,7 +287,12 @@ public class MP3Service {
 
         normalizedTitle = normalizedTitle.replaceAll("(?i) COVER\\)", " COVER)");
 
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(DEMO VERSION\\)", " (DEMO)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(DEMO\\)", " (DEMO)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(EDIT VERSION\\)", " (EDIT VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(SINGLE EDIT\\)", " (EDIT VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(EDIT\\)", " (EDIT VERSION)");
 
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(HISTORY VERSION\\)", " (HISTORY VERSION)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(HISTORY\\)", " (HISTORY VERSION)");
