@@ -1,0 +1,6 @@
+# logging
+logging:
+  level:
+    it.ade.ma: DEBUG
+    org.hibernate: ERROR
+    org.springframework.web: DEBUG

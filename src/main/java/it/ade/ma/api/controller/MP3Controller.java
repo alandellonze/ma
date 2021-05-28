@@ -1,6 +1,6 @@
 package it.ade.ma.api.controller;
 
-import it.ade.ma.api.sevice.MP3Service;
+import it.ade.ma.api.sevice.mp3.MP3Service;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

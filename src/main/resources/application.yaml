@@ -1,65 +1,61 @@
 # server
 server:
   port: 8080
+  compression.enabled: true
+  tomcat.threads.max: 50
+  error.include-message: always
 
 # spring
 spring:
+  # application
   application:
-    name: @project.groupId@.@project.artifactId@
-    version: @project.version@
+    version: "@project.version@"
+    name: "@project.name@"
+    description: "@project.description@"
 
-  # spring database
+  # datasource
   datasource:
-    platform: postgres
-    url: jdbc:postgresql://localhost:5432/ma3?autoReconnect=true
-    username: ade
+    driver-class-name: "org.postgresql.Driver"
+    url: "jdbc:postgresql://localhost:5432/ma3?currentSchema=public"
+    username: "ade"
     password:
+    hikari:
+      minimum-idle: 1 # default: 10
+      maximum-pool-size: 2 # default: 10
+      idle-timeout: 120000 # default: 600000
 
-  # spring JPA properties
+  # jpa
   jpa:
-    hibernate:
-      ddl-auto: validate
-      naming.physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        show-sql: false
-        format_sql: true
+    # open-in-view: false
+    hibernate.naming.physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties.hibernate:
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      format_sql: true
+    show-sql: false
 
-  # spring flyway
-  flyway:
-    enabled: true
-    validate-on-migrate: true
-    baseline-on-migrate: true
-    table: flyway_schema_version
-
-  # spring mail
+  # mail
   mail:
-    host: smtp.sendgrid.net
+    host: "smtp.sendgrid.net"
     port: 587
-    username: apikey
-    password: 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
+    username: "apikey"
+    password: "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"
 
-# logging
-logging:
-  level:
-    it.ade.ma: INFO
-    org.springframework.web: ERROR
-    org.hibernate: ERROR
-
-# mail
-mail:
-  from: postmaster@sandbox8ef10d5c5b5f462baeef1d00943fa340.mailgun.org
-  fromName: Metal Archives
-  to: alan.dellonze@gmail.com
-
-# ma discography
+# ma
 ma:
+  # metal-archives website
   metal-archives:
-    url: https://www.metal-archives.com/band/discography/id/%s/tab/all
+    url: "https://www.metal-archives.com/band/discography/id/%s/tab/all"
+
+  # path (for mp3, covers, etc...)
   path:
-    main: /Users/ade/Downloads/- MISC/music/
+    main: "/Users/ade/Downloads/- MISC/music/"
     tmp: "- tmp/"
-    cover: covers/
-    mp3: mp3/
-    scans: scans/
+    covers: "covers/"
+    mp3: "mp3/"
+    scans: "scans/"
+
+  # mail
+  mail:
+    from: "postmaster@sandbox8ef10d5c5b5f462baeef1d00943fa340.mailgun.org"
+    fromName: "Metal Archives"
+    to: "alan.dellonze@gmail.com"

@@ -1,6 +1,22 @@
-               _           _     _                _      _
-  /\/\    ___ | |_   __ _ | |   /_\   _ __   ___ | |__  (_)__   __  ___  ___
- /    \  / _ \| __| / _` || |  //_\\ | '__| / __|| '_ \ | |\ \ / / / _ \/ __|
-/ /\/\ \|  __/| |_ | (_| || | /  _  \| |   | (__ | | | || | \ V / |  __/\__ \
-\/    \/ \___| \__| \__,_||_| \_/ \_/|_|    \___||_| |_||_|  \_/   \___||___/
- ${AnsiColor.GREEN}:: ${spring.application.name} ::                                         ${AnsiColor.BLUE}(${spring.application.version})
+
+${AnsiColor.BRIGHT_YELLOW}               _           _     _                _      _
+${AnsiColor.BRIGHT_YELLOW}  /\/\    ___ | |_   __ _ | |   /_\   _ __   ___ | |__  (_)__   __  ___  ___
+${AnsiColor.BRIGHT_YELLOW} /    \  / _ \| __| / _` || |  //_\\ | '__| / __|| '_ \ | |\ \ / / / _ \/ __|
+${AnsiColor.BRIGHT_YELLOW}/ /\/\ \|  __/| |_ | (_| || | /  _  \| |   | (__ | | | || | \ V / |  __/\__ \
+${AnsiColor.BRIGHT_YELLOW}\/    \/ \___| \__| \__,_||_| \_/ \_/|_|    \___||_| |_||_|  \_/   \___||___/ ${AnsiColor.GREEN}:: @project.name@ :: ${AnsiColor.BLUE}@project.version@${AnsiColor.DEFAULT}
+===================================================================================================
+app
+  Spring Boot Version : ${spring-boot.version}
+  Java Version        : ${java.version:N/A}
+  Build Timestamp     : @maven.build.timestamp@
+spring
+  datasource.url      : ${spring.datasource.url}
+metal-archives
+  url                 : ${ma.metal-archives.url}
+path
+  main                : ${ma.path.main}
+  tmp                 : ${ma.path.tmp}
+  covers              : ${ma.path.covers}
+  mp3                 : ${ma.path.mp3}
+  scans               : ${ma.path.scans}
+===================================================================================================
