@@ -15,7 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -62,7 +64,7 @@ public class DiscographyService {
                 coversService.findAndUpdate(albumsFromDB);
 
                 // get Albums from web
-                List<AlbumDTO> albumsFromWeb = ripperService.execute(band.getMaKey());
+                List<AlbumDTO> albumsFromWeb = Objects.isNull(band.getMaKey()) ? Collections.emptyList() : ripperService.execute(band.getMaKey());
 
                 // calculate differences
                 discographyResult = diffService.execute(albumsFromDB, albumsFromWeb);

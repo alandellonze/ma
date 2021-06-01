@@ -6,6 +6,8 @@ import it.ade.ma.api.constants.MP3Status;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Data
 @NoArgsConstructor
 public class AlbumDTO {
@@ -43,10 +45,9 @@ public class AlbumDTO {
         if (o == null || getClass() != o.getClass()) return false;
 
         AlbumDTO albumDTO = (AlbumDTO) o;
-
-        if (type != null ? !type.equals(albumDTO.type) : albumDTO.type != null) return false;
-        if (typeCount != null ? !typeCount.equals(albumDTO.typeCount) : albumDTO.typeCount != null) return false;
-        if (name != null ? !name.equals(albumDTO.name) : albumDTO.name != null) return false;
+        if (!Objects.equals(type, albumDTO.type)) return false;
+        if (!Objects.equals(typeCount, albumDTO.typeCount)) return false;
+        if (!Objects.equals(name, albumDTO.name)) return false;
         return year.equals(albumDTO.year);
     }
 

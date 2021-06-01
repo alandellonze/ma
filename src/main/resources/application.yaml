@@ -26,12 +26,14 @@ spring:
 
   # jpa
   jpa:
-    # open-in-view: false
+    open-in-view: false
     hibernate.naming.physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     properties.hibernate:
       dialect: org.hibernate.dialect.PostgreSQLDialect
       format_sql: true
     show-sql: false
+
+
 
   # mail
   mail:

@@ -18,26 +18,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AlbumService {
 
+    private final AlbumMapper albumMapper;
     private final AlbumRepository albumRepository;
-
-    private AlbumDTO convertToDTO(Album album) {
-        if (album != null) {
-            AlbumDTO albumDTO = AlbumMapper.INSTANCE.toAlbumDTO(album);
-            albumDTO.setBandId(album.getBand().getId());
-            albumDTO.setBandName(album.getBand().getName());
-            return albumDTO;
-        }
-        return null;
-    }
-
-    private Album convertToEntity(AlbumDTO albumDTO) {
-        if (albumDTO != null) {
-            Album album = AlbumMapper.INSTANCE.toAlbum(albumDTO);
-            album.setBand(new Band(albumDTO.getBandId(), albumDTO.getBandName(), null));
-            return album;
-        }
-        return null;
-    }
 
     public List<AlbumDTO> findAllByBandName(String bandName) {
         List<Album> albums = albumRepository.findAllByBandNameOrderByPositionAsc(bandName);
@@ -78,6 +60,27 @@ public class AlbumService {
                 albumRepository.save(album);
             }
         }
+    }
+
+    // MAPPERS
+
+    private AlbumDTO convertToDTO(Album album) {
+        if (album != null) {
+            AlbumDTO albumDTO = albumMapper.toAlbumDTO(album);
+            albumDTO.setBandId(album.getBand().getId());
+            albumDTO.setBandName(album.getBand().getName());
+            return albumDTO;
+        }
+        return null;
+    }
+
+    private Album convertToEntity(AlbumDTO albumDTO) {
+        if (albumDTO != null) {
+            Album album = albumMapper.toAlbum(albumDTO);
+            album.setBand(new Band(albumDTO.getBandId(), albumDTO.getBandName(), null));
+            return album;
+        }
+        return null;
     }
 
 }

@@ -19,42 +19,50 @@ import java.util.List;
 public class DiffService {
 
     public DiscographyResult execute(List<AlbumDTO> original, List<AlbumDTO> revised) throws DiffException {
-        log.info("execute({}, {})", original, revised);
+        log.info("execute(original: {}, revised: {})", original, revised);
 
         DiscographyResult discographyResult = new DiscographyResult();
 
-        Patch<AlbumDTO> patch = DiffUtils.diff(original, revised);
-        List<AbstractDelta<AlbumDTO>> deltas = patch.getDeltas();
-
-        // if there are no differences
-        if (deltas.size() == 0) {
+        // if there are no data from revisited
+        if (revised.isEmpty()) {
             equalAction(discographyResult, original);
         }
 
-        // otherwise, if there are differences
+        // otherwise, compare the lists
         else {
-            // add the first not diff items
-            AbstractDelta currentDelta = deltas.remove(0);
-            Integer currentPosition = currentDelta.getSource().getPosition();
-            if (currentPosition > 0) {
-                equalAction(discographyResult, original.subList(0, currentPosition));
-                getDeltaTextCustom(discographyResult, currentDelta);
+            Patch<AlbumDTO> patch = DiffUtils.diff(original, revised);
+            List<AbstractDelta<AlbumDTO>> deltas = patch.getDeltas();
+
+            // if there are no differences
+            if (deltas.isEmpty()) {
+                equalAction(discographyResult, original);
             }
 
-            // add the diff items
-            for (AbstractDelta nextDelta : deltas) {
-                int intermediateStart = currentPosition + currentDelta.getSource().getLines().size();
-                equalAction(discographyResult, original.subList(intermediateStart, nextDelta.getSource().getPosition()));
-                getDeltaTextCustom(discographyResult, nextDelta);
+            // otherwise, if there are differences
+            else {
+                // add the first not diff items
+                AbstractDelta<AlbumDTO> currentDelta = deltas.remove(0);
+                int currentPosition = currentDelta.getSource().getPosition();
+                if (currentPosition > 0) {
+                    equalAction(discographyResult, original.subList(0, currentPosition));
+                    getDeltaTextCustom(discographyResult, currentDelta);
+                }
 
-                currentDelta = nextDelta;
-                currentPosition = nextDelta.getSource().getPosition();
-            }
+                // add the diff items
+                for (AbstractDelta<AlbumDTO> nextDelta : deltas) {
+                    int intermediateStart = currentPosition + currentDelta.getSource().getLines().size();
+                    equalAction(discographyResult, original.subList(intermediateStart, nextDelta.getSource().getPosition()));
+                    getDeltaTextCustom(discographyResult, nextDelta);
 
-            // add the last not diff items
-            int lastStart = currentPosition + currentDelta.getSource().getLines().size();
-            if (lastStart < original.size()) {
-                equalAction(discographyResult, original.subList(lastStart, original.size()));
+                    currentDelta = nextDelta;
+                    currentPosition = nextDelta.getSource().getPosition();
+                }
+
+                // add the last not diff items
+                int lastStart = currentPosition + currentDelta.getSource().getLines().size();
+                if (lastStart < original.size()) {
+                    equalAction(discographyResult, original.subList(lastStart, original.size()));
+                }
             }
         }
 
@@ -62,7 +70,7 @@ public class DiffService {
         return discographyResult;
     }
 
-    private void getDeltaTextCustom(DiscographyResult discographyResult, AbstractDelta delta) {
+    private void getDeltaTextCustom(DiscographyResult discographyResult, AbstractDelta<AlbumDTO> delta) {
         // plus
         if (delta.getSource().getLines().size() == 0 && delta.getTarget().getLines().size() > 0) {
             plusAction(discographyResult, delta.getTarget().getLines());
