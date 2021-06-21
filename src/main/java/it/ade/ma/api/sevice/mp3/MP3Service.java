@@ -285,6 +285,11 @@ public class MP3Service {
 
         normalizedTitle = normalizedTitle.replaceAll("(?i) COVER\\)", " COVER)");
 
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(REMASTERED\\)", " (REMASTERED )");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(RADIO EDIT\\)", " (RADIO EDIT)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(RADIO\\)", " (RADIO EDIT)");
+
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(DEMO VERSION\\)", " (DEMO)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(DEMO\\)", " (DEMO)");
 
@@ -319,6 +324,9 @@ public class MP3Service {
 
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(STUDIO JAM VERSION\\)", " (STUDIO JAM VERSION)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(STUDIO JAM\\)", " (STUDIO JAM VERSION)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(16TH CENTURY VERSION\\)", " (16TH CENTURY VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(16TH CENTURY\\)", " (16TH CENTURY VERSION)");
 
         return normalizedTitle.trim();
     }
