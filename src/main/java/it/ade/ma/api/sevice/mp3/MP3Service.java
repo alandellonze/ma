@@ -328,6 +328,13 @@ public class MP3Service {
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(16TH CENTURY VERSION\\)", " (16TH CENTURY VERSION)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(16TH CENTURY\\)", " (16TH CENTURY VERSION)");
 
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ALTERNATIVE VOCALS VERSION\\)", " (ALTERNATIVE VOCALS VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ALTERNATIVE VOCALS\\)", " (ALTERNATIVE VOCALS VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ALTERNATIVE VOCAL VERSION\\)", " (ALTERNATIVE VOCALS VERSION)");
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ALTERNATIVE VOCAL\\)", " (ALTERNATIVE VOCALS VERSION)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(FULL MARCO VOCALS VERSION\\)", " (FULL MARCO VOCALS VERSION)");
+
         return normalizedTitle.trim();
     }
 
