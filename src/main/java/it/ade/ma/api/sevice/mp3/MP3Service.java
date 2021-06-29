@@ -13,8 +13,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -25,6 +27,12 @@ public class MP3Service {
     private final PathUtil pathUtil;
     private final MP3Util mp3Util;
 
+    public List<String> getAllMP3s(String bandName) throws IOException {
+        return pathUtil.getAllMP3s(bandName)
+                .collect(Collectors.toList());
+    }
+
+    @Deprecated
     public void findAndUpdate(List<AlbumDTO> albums) {
         log.info("findAndUpdate({})", (albums != null ? albums.size() : null));
 
@@ -33,7 +41,7 @@ public class MP3Service {
                 MP3Status status;
 
                 // look into mp3 folder
-                String path = pathUtil.generateMP3Name(album);
+                String path = pathUtil.generateMP3NameFull(album);
                 boolean exists = pathUtil.fileExists(path);
                 if (exists) {
                     status = MP3Status.PRESENT;

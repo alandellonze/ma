@@ -43,6 +43,7 @@ public class DiscographyController {
         }
     }
 
+    @Deprecated
     @GetMapping
     public ResponseEntity<DiscographyResult> getOne(@RequestParam String bandName, @RequestParam(defaultValue = "false") boolean sendNotification) {
         log.info("getOne({}, {})", bandName, sendNotification);
@@ -56,7 +57,7 @@ public class DiscographyController {
         log.info("equal({})", discographyItem);
 
         try {
-            discographyService.equal(discographyItem.getBand(), discographyItem.getAlbumDiff());
+            discographyService.equal(discographyItem.getBand(), discographyItem.getDiff());
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -69,7 +70,7 @@ public class DiscographyController {
         log.info("plus({})", discographyItem);
 
         try {
-            discographyService.plus(discographyItem.getBand(), discographyItem.getAlbumDiff());
+            discographyService.plus(discographyItem.getBand(), discographyItem.getDiff());
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -82,7 +83,7 @@ public class DiscographyController {
         log.info("change({})", discographyItem);
 
         try {
-            discographyService.change(discographyItem.getBand(), discographyItem.getAlbumDiff());
+            discographyService.change(discographyItem.getBand(), discographyItem.getDiff());
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error(e.getMessage(), e);

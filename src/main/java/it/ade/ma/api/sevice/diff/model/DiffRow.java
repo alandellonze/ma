@@ -1,6 +1,5 @@
-package it.ade.ma.api.sevice.discography.model;
+package it.ade.ma.api.sevice.diff.model;
 
-import it.ade.ma.api.sevice.db.model.dto.AlbumDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +9,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AlbumDiff {
+public class DiffRow<T> {
 
     public enum DiffType {
         EQUAL,
@@ -20,7 +19,7 @@ public class AlbumDiff {
     }
 
     DiffType type;
-    List<AlbumDTO> original;
-    List<AlbumDTO> revised;
+    List<T> original;
+    List<T> revised;
 
 }

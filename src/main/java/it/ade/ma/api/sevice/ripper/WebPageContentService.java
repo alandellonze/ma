@@ -21,7 +21,7 @@ public class WebPageContentService {
     private final String maMetalArchivesUrl;
 
     public WebPageContentService(
-            @Value("${ma.metal-archives.url}") String maMetalArchivesUrl) {
+            final @Value("${ma.metal-archives.url}") String maMetalArchivesUrl) {
         this.maMetalArchivesUrl = maMetalArchivesUrl;
     }
 

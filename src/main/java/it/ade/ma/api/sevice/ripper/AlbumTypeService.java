@@ -10,7 +10,7 @@ import java.util.Map;
 public class AlbumTypeService {
 
     // FIXME externalize config
-    private Map<String, String> types = ImmutableMap.<String, String>builder()
+    private final Map<String, String> types = ImmutableMap.<String, String>builder()
             .put("Full-length", "FULLLENGTH")
 
             .put("Boxed set", "BOXSET")

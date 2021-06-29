@@ -1,137 +1,128 @@
 package it.ade.ma.api.sevice.discography;
 
-import com.github.difflib.DiffUtils;
-import com.github.difflib.algorithm.DiffException;
-import com.github.difflib.patch.AbstractDelta;
-import com.github.difflib.patch.Patch;
-import com.google.common.collect.Lists;
+import it.ade.ma.api.sevice.covers.CoversService;
+import it.ade.ma.api.sevice.db.model.Band;
 import it.ade.ma.api.sevice.db.model.dto.AlbumDTO;
-import it.ade.ma.api.sevice.discography.model.AlbumDiff;
-import it.ade.ma.api.sevice.discography.model.AlbumDiff.DiffType;
-import it.ade.ma.api.sevice.discography.model.DiscographyResult;
+import it.ade.ma.api.sevice.db.repository.BandRepository;
+import it.ade.ma.api.sevice.db.service.AlbumService;
+import it.ade.ma.api.sevice.diff.model.DiffResult;
+import it.ade.ma.api.sevice.mp3.MP3Service;
+import it.ade.ma.api.sevice.path.PathUtil;
+import it.ade.ma.api.sevice.ripper.RipperService;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
-@Component
+@Service
+@RequiredArgsConstructor
 public class DiffService {
 
-    public DiscographyResult execute(List<AlbumDTO> original, List<AlbumDTO> revised) throws DiffException {
-        log.info("execute(original: {}, revised: {})", original, revised);
+    private final BandRepository bandRepository;
+    private final AlbumService albumService;
 
-        DiscographyResult discographyResult = new DiscographyResult();
+    private final RipperService ripperService;
+    private final CoversService coversService;
+    private final MP3Service mp3Service;
 
-        // if there are no data from revisited
-        if (revised.isEmpty()) {
-            equalAction(discographyResult, original);
-        }
+    private final AlbumDiffService albumDiffService;
+    private final StringDiffService stringDiffService;
 
-        // otherwise, compare the lists
-        else {
-            Patch<AlbumDTO> patch = DiffUtils.diff(original, revised);
-            List<AbstractDelta<AlbumDTO>> deltas = patch.getDeltas();
+    public void execute(String bandName) {
+        log.info("execute({})", bandName);
 
-            // if there are no differences
-            if (deltas.isEmpty()) {
-                equalAction(discographyResult, original);
-            }
+        // get Band from db
+        Optional<Band> bandOpt = bandRepository.findByName(bandName);
+        if (bandOpt.isEmpty()) {
+            log.info("band with name {} wasn't found", bandName);
+        } else {
+            Band band = bandOpt.get();
 
-            // otherwise, if there are differences
-            else {
-                // add the first not diff items
-                AbstractDelta<AlbumDTO> currentDelta = deltas.remove(0);
-                int currentPosition = currentDelta.getSource().getPosition();
-                if (currentPosition > 0) {
-                    equalAction(discographyResult, original.subList(0, currentPosition));
-                    getDeltaTextCustom(discographyResult, currentDelta);
-                }
+            // get Albums from db
+            List<AlbumDTO> albums = albumService.findAllByBandName(band.getName());
+            log.info("{} albums found on db for band {}", albums.size(), bandName);
 
-                // add the diff items
-                for (AbstractDelta<AlbumDTO> nextDelta : deltas) {
-                    int intermediateStart = currentPosition + currentDelta.getSource().getLines().size();
-                    equalAction(discographyResult, original.subList(intermediateStart, nextDelta.getSource().getPosition()));
-                    getDeltaTextCustom(discographyResult, nextDelta);
+            // TODO diffs from web
+            diffsWeb(band, albums);
 
-                    currentDelta = nextDelta;
-                    currentPosition = nextDelta.getSource().getPosition();
-                }
+            // TODO diffs covers
+            diffsCovers(band, albums);
 
-                // add the last not diff items
-                int lastStart = currentPosition + currentDelta.getSource().getLines().size();
-                if (lastStart < original.size()) {
-                    equalAction(discographyResult, original.subList(lastStart, original.size()));
-                }
-            }
-        }
+            // TODO diffs mp3
+            diffsMP3(band, albums);
 
-        log.debug("changes found: {}", discographyResult.getChanges());
-        return discographyResult;
-    }
-
-    private void getDeltaTextCustom(DiscographyResult discographyResult, AbstractDelta<AlbumDTO> delta) {
-        // plus
-        if (delta.getSource().getLines().size() == 0 && delta.getTarget().getLines().size() > 0) {
-            plusAction(discographyResult, delta.getTarget().getLines());
-        }
-
-        // minus
-        else if (delta.getSource().getLines().size() > 0 && delta.getTarget().getLines().size() == 0) {
-            minusAction(discographyResult, delta.getSource().getLines());
-        }
-
-        // change
-        else if (delta.getSource().getLines().size() > 0 && delta.getTarget().getLines().size() > 0) {
-            changeAction(discographyResult, delta.getSource().getLines(), delta.getTarget().getLines());
+            // TODO diffs scans
+            diffsScans(band, albums);
         }
     }
 
-    private void equalAction(DiscographyResult discographyResult, List<AlbumDTO> original) {
-        List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
-        for (AlbumDTO album : original) {
-            log.debug("  {}", album);
-            albumDiffs.add(new AlbumDiff(DiffType.EQUAL, Lists.newArrayList(album), null));
-        }
+    @SneakyThrows
+    DiffResult<AlbumDTO> diffsWeb(Band band, List<AlbumDTO> albums) {
+        log.info("diffsWeb({}, {})", band, albums.size());
+
+        // get album from web
+        List<AlbumDTO> albumsFromWeb = Objects.isNull(band.getMaKey()) ? Collections.emptyList() : ripperService.execute(band.getMaKey());
+
+        // diff album
+        return albumDiffService.execute(albums, albumsFromWeb);
     }
 
-    private void plusAction(DiscographyResult discographyResult, List<AlbumDTO> revised) {
-        List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
-        for (AlbumDTO album : revised) {
-            log.debug("+ {}", album);
-            albumDiffs.add(new AlbumDiff(DiffType.PLUS, null, Lists.newArrayList(album)));
-            incrementCount(discographyResult, 1);
-        }
+    @SneakyThrows
+    private void diffsCovers(Band band, List<AlbumDTO> albums) {
+        log.info("diffsCovers({}, {})", band, albums.size());
+
+        // convert album to cover's name
+        List<String> albumsToString = albums.stream()
+                .map(PathUtil::generateCoverName)
+                .sorted()
+                .collect(Collectors.toList());
+
+        // get cover files from disk
+        List<String> covers = coversService.getAllCovers(band.getName());
+
+        // diff covers
+        stringDiffService.execute(albumsToString, covers);
     }
 
-    private void minusAction(DiscographyResult discographyResult, List<AlbumDTO> original) {
-        List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
-        for (AlbumDTO album : original) {
-            if (album.isFullyCustom()) {
-                log.debug("  {}", album);
-                albumDiffs.add(new AlbumDiff(DiffType.EQUAL, Lists.newArrayList(album), null));
-            } else {
-                log.debug("- {}", album);
-                albumDiffs.add(new AlbumDiff(DiffType.MINUS, Lists.newArrayList(album), null));
-                incrementCount(discographyResult, 1);
-            }
-        }
+    @SneakyThrows
+    private void diffsMP3(Band band, List<AlbumDTO> albums) {
+        log.info("diffsMP3({}, {})", band, albums.size());
+
+        // convert album to mp3 folder's name
+        List<String> albumsToString = albums.stream()
+                .map(PathUtil::generateMP3Name)
+                .sorted()
+                .collect(Collectors.toList());
+
+        // get mp3 folder's names from disk
+        List<String> covers = mp3Service.getAllMP3s(band.getName());
+
+        // diff covers
+        stringDiffService.execute(albumsToString, covers);
     }
 
-    private void changeAction(DiscographyResult discographyResult, List<AlbumDTO> original, List<AlbumDTO> revised) {
-        List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
-        for (AlbumDTO album : original) {
-            log.debug("> {}", album);
-        }
-        for (AlbumDTO album : revised) {
-            log.debug("< {}", album);
-        }
-        albumDiffs.add(new AlbumDiff(DiffType.CHANGE, original, revised));
-        incrementCount(discographyResult, Math.max(original.size(), revised.size()));
-    }
+    @SneakyThrows
+    private void diffsScans(Band band, List<AlbumDTO> albums) {
+        log.info("diffsScans({}, {})", band, albums.size());
 
-    private void incrementCount(DiscographyResult discographyResult, Integer value) {
-        discographyResult.setChanges(discographyResult.getChanges() + value);
+        // convert album to scan's name
+        List<String> albumsToString = albums.stream()
+                .map(PathUtil::generateScanName)
+                .sorted()
+                .collect(Collectors.toList());
+
+        // get scan files from disk
+        List<String> covers = coversService.getAllScans(band.getName());
+
+        // diff scans
+        stringDiffService.execute(albumsToString, covers);
     }
 
 }

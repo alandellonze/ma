@@ -2,102 +2,100 @@ package it.ade.ma.api.sevice.mail;
 
 import it.ade.ma.api.sevice.db.model.Band;
 import it.ade.ma.api.sevice.db.model.dto.AlbumDTO;
-import it.ade.ma.api.sevice.discography.model.AlbumDiff;
-import it.ade.ma.api.sevice.discography.model.AlbumDiff.DiffType;
+import it.ade.ma.api.sevice.diff.model.DiffRow;
+import it.ade.ma.api.sevice.diff.model.DiffRow.DiffType;
 import it.ade.ma.api.sevice.discography.model.DiscographyResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class NotificationService {
 
-    private final static Logger logger = LoggerFactory.getLogger(NotificationService.class);
-
-    private String maMetalArchivesUrl;
-    private MailService mailService;
+    private final String maMetalArchivesUrl;
+    private final MailService mailService;
 
     public NotificationService(
-            @Value("${ma.metal-archives.url}") String maMetalArchivesUrl,
-            MailService mailService) {
+            final @Value("${ma.metal-archives.url}") String maMetalArchivesUrl,
+            final MailService mailService) {
         this.maMetalArchivesUrl = maMetalArchivesUrl;
         this.mailService = mailService;
     }
 
     @Async
     public void execute(DiscographyResult discographyResult) {
-        logger.info("execute({})", discographyResult);
+        log.info("execute({})", discographyResult);
 
         Band band = discographyResult.getBand();
         Integer changes = discographyResult.getChanges();
-        List<AlbumDiff> albumDiffs = discographyResult.getAlbumDiffs();
+        List<DiffRow<AlbumDTO>> diffs = discographyResult.getAlbumDiffs();
 
         String subject = prepareSubject(band, changes);
-        String text = prepareText(band, albumDiffs);
+        String text = prepareText(band, diffs);
 
         mailService.sendEmail(subject, text);
     }
 
     private String prepareSubject(Band band, Integer changes) {
-        logger.debug("prepareSubject({}, {})", band, changes);
+        log.debug("prepareSubject({}, {})", band, changes);
 
         return band.getName() + " (" + changes + " differences)";
     }
 
-    private String prepareText(Band band, List<AlbumDiff> albumDiffs) {
-        logger.debug("prepareText({}, {})", band, albumDiffs);
+    private String prepareText(Band band, List<DiffRow<AlbumDTO>> diffs) {
+        log.debug("prepareText({}, {})", band, diffs);
 
         StringBuilder document = new StringBuilder();
 
         document.append("<table cellspacing='0' cellpadding='5' style='font-size: 12px; border-bottom: 1px SOLID #AAAAAA;'>");
 
-        for (AlbumDiff albumDiff : albumDiffs) {
-            switch (albumDiff.getType()) {
+        for (DiffRow<AlbumDTO> diff : diffs) {
+            switch (diff.getType()) {
                 case EQUAL:
-                    for (AlbumDTO albumOriginal : albumDiff.getOriginal()) {
+                    for (AlbumDTO albumOriginal : diff.getOriginal()) {
                         document.append("<tr>");
-                        generateRows(document, albumDiff.getType(), albumOriginal, null);
+                        generateRows(document, diff.getType(), albumOriginal, null);
                         document.append("</tr>");
                     }
                     break;
 
                 case PLUS:
-                    for (AlbumDTO albumRevised : albumDiff.getRevised()) {
+                    for (AlbumDTO albumRevised : diff.getRevised()) {
                         document.append("<tr style='background-color: #77FF77; color: #7777FF;'>");
-                        generateRows(document, albumDiff.getType(), null, albumRevised);
+                        generateRows(document, diff.getType(), null, albumRevised);
                         document.append("</tr>");
                     }
                     break;
 
                 case MINUS:
-                    for (AlbumDTO albumOriginal : albumDiff.getOriginal()) {
+                    for (AlbumDTO albumOriginal : diff.getOriginal()) {
                         document.append("<tr style='background-color: #FF7777; color: #FFFF77;'>");
-                        generateRows(document, albumDiff.getType(), albumOriginal, null);
+                        generateRows(document, diff.getType(), albumOriginal, null);
                         document.append("</tr>");
                     }
                     break;
 
                 case CHANGE:
                     int i = 0;
-                    for (; i < albumDiff.getOriginal().size(); i++) {
-                        AlbumDTO albumOriginal = albumDiff.getOriginal().get(i);
-                        AlbumDTO albumRevised = (i < albumDiff.getRevised().size()) ? albumDiff.getRevised().get(i) : null;
+                    for (; i < diff.getOriginal().size(); i++) {
+                        AlbumDTO albumOriginal = diff.getOriginal().get(i);
+                        AlbumDTO albumRevised = (i < diff.getRevised().size()) ? diff.getRevised().get(i) : null;
 
                         document.append("<tr style='background-color: #EEECC0; color: #555555;'>");
-                        generateRows(document, albumDiff.getType(), albumOriginal, albumRevised);
+                        generateRows(document, diff.getType(), albumOriginal, albumRevised);
                         document.append("<tr>");
                     }
 
-                    if (i < albumDiff.getRevised().size()) {
-                        for (; i < albumDiff.getRevised().size(); i++) {
-                            AlbumDTO albumRevised = albumDiff.getRevised().get(i);
+                    if (i < diff.getRevised().size()) {
+                        for (; i < diff.getRevised().size(); i++) {
+                            AlbumDTO albumRevised = diff.getRevised().get(i);
 
                             document.append("<tr style='background-color: #EEECC0; color: #555555;'>");
-                            generateRows(document, albumDiff.getType(), null, albumRevised);
+                            generateRows(document, diff.getType(), null, albumRevised);
                             document.append("<tr>");
                         }
                     }

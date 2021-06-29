@@ -22,7 +22,7 @@ public class RipperService {
     private final AlbumTypeService albumTypeService;
     private final WebPageContentService webPageContentService;
 
-    public List<AlbumDTO> execute(Long bandMAKey) throws IOException {
+    public List<AlbumDTO> execute(long bandMAKey) throws IOException {
         log.info("execute({})", bandMAKey);
 
         List<AlbumDTO> albums = new ArrayList<>();

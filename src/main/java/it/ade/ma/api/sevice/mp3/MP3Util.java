@@ -7,9 +7,8 @@ import com.mpatric.mp3agic.NotSupportedException;
 import it.ade.ma.api.sevice.db.model.dto.AlbumDTO;
 import it.ade.ma.api.sevice.path.PathUtil;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -17,11 +16,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+@Slf4j
 @Component
 @AllArgsConstructor
 public class MP3Util {
-
-    private final static Logger logger = LoggerFactory.getLogger(MP3Util.class);
 
     // TODO move into configuration section (or album exceptions list)
     private static final Integer MP3_TAG_DEFAULT_GENRE = 9;
@@ -39,7 +37,7 @@ public class MP3Util {
         id3v2TagTemplate.setGenreDescription(MP3_TAG_DEFAULT_GENRE_DESCRIPTION);
 
         // get cover from disk
-        String albumCover = pathUtil.generateCoverName(album);
+        String albumCover = pathUtil.generateCoverNameFull(album);
         byte[] albumCoverImage = Files.readAllBytes(Paths.get(albumCover));
         String albumCoverMime = "image/jpeg";
         id3v2TagTemplate.setAlbumImage(albumCoverImage, albumCoverMime);
@@ -48,7 +46,7 @@ public class MP3Util {
     }
 
     public String extractTitleFromMp3File(Mp3File mp3File) {
-        logger.info("extractTitleFromMp3File(mp3File={})", mp3File.getFilename());
+        log.info("extractTitleFromMp3File(mp3File={})", mp3File.getFilename());
 
         String filename = mp3File.getFilename();
         filename = filename.substring(filename.lastIndexOf("/") + 1, filename.length());
@@ -58,7 +56,7 @@ public class MP3Util {
     }
 
     public void updateMP3File(Mp3File mp3File) throws IOException, NotSupportedException {
-        logger.info("updateMP3File(mp3File={})", mp3File.getFilename());
+        log.info("updateMP3File(mp3File={})", mp3File.getFilename());
 
         // save new tags
         String fileName = mp3File.getFilename();
@@ -71,7 +69,7 @@ public class MP3Util {
             String[] currentFileName = splitFileNameFromMp3File(mp3File);
             String newFileName = pathUtil.normalizeName(extractFileNameFromID3v2(mp3File.getId3v2Tag()));
             if (!currentFileName[1].equals(newFileName)) {
-                logger.info("normalize file name to: {}", newFileName);
+                log.info("normalize file name to: {}", newFileName);
                 Files.move(Paths.get(fileName), Paths.get(tmpFileName), StandardCopyOption.REPLACE_EXISTING);
                 Files.move(Paths.get(tmpFileName), Paths.get(currentFileName[0] + newFileName), StandardCopyOption.REPLACE_EXISTING);
             }

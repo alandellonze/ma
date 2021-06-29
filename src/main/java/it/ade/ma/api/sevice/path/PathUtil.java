@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -19,16 +21,43 @@ public class PathUtil {
         return pathConfiguration.getMain() + pathConfiguration.getTmp() + normalizeName(album.getBandName()) + " - " + generateAlbumName(album);
     }
 
+    public Stream<String> getAllCovers(String bandName) throws IOException {
+        String folderName = pathConfiguration.getMain() + pathConfiguration.getCovers() + normalizeName(bandName);
+        return getFolderContent(folderName);
+    }
+
+    public String generateCoverNameFull(AlbumDTO album) {
+        return pathConfiguration.getMain() + pathConfiguration.getCovers() + normalizeName(album.getBandName()) + "/" + generateCoverName(album);
+    }
+
     // FIXME cover image: it couldn't be a jpg image...
-    public String generateCoverName(AlbumDTO album) {
-        return pathConfiguration.getMain() + pathConfiguration.getCovers() + normalizeName(album.getBandName()) + "/" + generateAlbumName(album) + ".jpg";
+    public static String generateCoverName(AlbumDTO album) {
+        return generateAlbumName(album) + ".jpg";
     }
 
-    public String generateMP3Name(AlbumDTO album) {
-        return pathConfiguration.getMain() + pathConfiguration.getMp3() + normalizeName(album.getBandName()) + "/" + generateAlbumName(album);
+    public Stream<String> getAllScans(String bandName) throws IOException {
+        String folderName = pathConfiguration.getMain() + pathConfiguration.getScans() + normalizeName(bandName);
+        return getFolderContent(folderName);
     }
 
-    private String generateAlbumName(AlbumDTO album) {
+    public static String generateScanName(AlbumDTO album) {
+        return generateAlbumName(album);
+    }
+
+    public Stream<String> getAllMP3s(String bandName) throws IOException {
+        String folderName = pathConfiguration.getMain() + pathConfiguration.getMp3() + normalizeName(bandName);
+        return getFolderContent(folderName);
+    }
+
+    public String generateMP3NameFull(AlbumDTO album) {
+        return pathConfiguration.getMain() + pathConfiguration.getMp3() + normalizeName(album.getBandName()) + "/" + generateMP3Name(album);
+    }
+
+    public static String generateMP3Name(AlbumDTO album) {
+        return generateAlbumName(album);
+    }
+
+    private static String generateAlbumName(AlbumDTO album) {
         // add album type
         String type = (album.getMaType() != null) ? album.getMaType() : album.getType();
         type = (type == null || "FULLLENGTH".equals(type)) ? "" : type;
@@ -45,18 +74,30 @@ public class PathUtil {
         return folderName.toString();
     }
 
-    public String normalizeName(String name) {
+    public static String normalizeName(String name) {
         name = name.replaceAll(":", " -");
         name = name.replaceAll("/", "-");
         return name;
     }
 
     public Map<String, List<String>> getMP3FileNameMap(AlbumDTO album) throws IOException {
-        String folderName = generateMP3Name(album);
+        String folderName = generateMP3NameFull(album);
         if (!fileExists(folderName)) {
             folderName = generateTMPName(album);
         }
         return getFileNameMap(folderName);
+    }
+
+    private Stream<String> getFolderContent(String folderName) throws IOException {
+        Path path = Paths.get(folderName);
+        if (Files.exists(path)) {
+            int folderLength = folderName.length();
+            return Files.walk(Paths.get(folderName), 1)
+                    .filter(p -> p.toString().length() > folderLength)
+                    .map(p -> p.toString().substring(folderLength + 1))
+                    .sorted();
+        }
+        return Stream.empty();
     }
 
     private Map<String, List<String>> getFileNameMap(String folderName) throws IOException {
