@@ -2,7 +2,7 @@ package it.ade.ma.api.sevice.discography;
 
 import com.google.common.collect.Lists;
 import it.ade.ma.api.sevice.db.model.dto.AlbumDTO;
-import it.ade.ma.api.sevice.diff.DiffService;
+import it.ade.ma.api.sevice.diff.AbstractDiffService;
 import it.ade.ma.api.sevice.diff.model.DiffResult;
 import it.ade.ma.api.sevice.diff.model.DiffRow;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import static it.ade.ma.api.sevice.diff.model.DiffRow.DiffType.MINUS;
 
 @Slf4j
 @Component
-public class AlbumDiffService extends DiffService<AlbumDTO> {
+public class AlbumDiffService extends AbstractDiffService<AlbumDTO> {
 
     @Override
     public void minusAction(DiffResult<AlbumDTO> diffResult, List<AlbumDTO> original) {

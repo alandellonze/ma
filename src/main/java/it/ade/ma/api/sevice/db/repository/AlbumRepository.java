@@ -9,6 +9,6 @@ import java.util.List;
 @Repository
 public interface AlbumRepository extends CrudRepository<Album, Long> {
 
-    List<Album> findAllByBandNameOrderByPositionAsc(String bandName);
+    List<Album> findAllByBandIdOrderByPositionAsc(long bandId);
 
 }

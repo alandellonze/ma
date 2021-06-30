@@ -15,7 +15,7 @@ import java.util.function.BiPredicate;
 import static it.ade.ma.api.sevice.diff.model.DiffRow.DiffType.*;
 
 @Slf4j
-public abstract class DiffService<T> {
+public abstract class AbstractDiffService<T> {
 
     private final BiPredicate<T, T> DEFAULT_EQUALIZER = Object::equals;
 

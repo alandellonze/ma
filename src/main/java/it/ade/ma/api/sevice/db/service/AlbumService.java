@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -21,8 +22,8 @@ public class AlbumService {
     private final AlbumMapper albumMapper;
     private final AlbumRepository albumRepository;
 
-    public List<AlbumDTO> findAllByBandName(String bandName) {
-        List<Album> albums = albumRepository.findAllByBandNameOrderByPositionAsc(bandName);
+    public List<AlbumDTO> findAllByBandId(long bandId) {
+        List<Album> albums = albumRepository.findAllByBandIdOrderByPositionAsc(bandId);
         return albums.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
@@ -40,22 +41,22 @@ public class AlbumService {
         albumRepository.deleteById(id);
     }
 
-    public void adjustPositions(String bandName) {
-        adjustPositions(bandName, 1, 0);
+    public void adjustPositions(long bandId) {
+        adjustPositions(bandId, 1, 0);
     }
 
-    public void adjustPositions(String bandName, Integer start, Integer offset) {
-        log.info("adjustPositions({}, {}, {})", bandName, start, offset);
+    public void adjustPositions(long bandId, Integer start, Integer offset) {
+        log.info("adjustPositions({}, {}, {})", bandId, start, offset);
 
         // get all the Albums
-        List<Album> albums = albumRepository.findAllByBandNameOrderByPositionAsc(bandName);
+        List<Album> albums = albumRepository.findAllByBandIdOrderByPositionAsc(bandId);
 
         // adjust position
         for (int i = start - 1; i < albums.size(); i++) {
             Album album = albums.get(i);
             Integer position = i + 1 + offset;
-            if (!position.equals(album.getPosition())) {
-                log.debug("{}, {}: {} -> {} - {}", bandName, i, album.getPosition(), position, album.getName());
+            if (!Objects.equals(position, album.getPosition())) {
+                log.debug("{}, {}: {} -> {} - {}", album.getBand().getName(), i, album.getPosition(), position, album.getName());
                 album.setPosition(position);
                 albumRepository.save(album);
             }

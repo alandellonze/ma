@@ -16,7 +16,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -35,94 +34,78 @@ public class DiscographyService {
         log.info("adjustPositions()");
 
         List<Band> bands = bandRepository.findAllByMaKeyNotNullOrderByName();
-        bands.forEach(band -> albumService.adjustPositions(band.getName()));
+        bands.forEach(band -> albumService.adjustPositions(band.getId()));
     }
 
     public void executeAll() {
         log.info("executeAll()");
 
-        List<Band> bands = bandRepository.findAllByMaKeyNotNullOrderByName();
-        bands.forEach(band -> execute(band.getName(), true));
+        bandRepository.findAllByMaKeyNotNullOrderByName()
+                .forEach(this::executeAll);
     }
 
-    @Deprecated
-    public DiscographyResult execute(String bandName, boolean sendNotification) {
-        log.info("execute({}, {})", bandName, sendNotification);
+    private void executeAll(Band band) {
+        log.info("execute({})", band);
 
         try {
-            // get Band from db
-            Optional<Band> bandOpt = bandRepository.findByName(bandName);
-            if (bandOpt.isPresent()) {
-                Band band = bandOpt.get();
+            // get Albums from db
+            List<AlbumDTO> albumsFromDB = albumService.findAllByBandId(band.getId());
 
-                // get Albums from db
-                List<AlbumDTO> albumsFromDB = albumService.findAllByBandName(band.getName());
+            // calculate differences
+            DiffResult<AlbumDTO> diffResult = diffService.diffsWeb(band.getMaKey(), albumsFromDB);
+            DiscographyResult discographyResult = new DiscographyResult(band, diffResult.getChanges(), diffResult.getDiffs());
 
-                // search MP3 for each Albums
-                mp3Service.findAndUpdate(albumsFromDB);
-
-                // search Covers for each Albums
-                coversService.findAndUpdate(albumsFromDB);
-
-                // calculate differences
-                DiffResult<AlbumDTO> diffResult = diffService.diffsWeb(band, albumsFromDB);
-                DiscographyResult discographyResult = new DiscographyResult(band, diffResult.getChanges(), diffResult.getDiffs());
-
-                // notify
-                if (sendNotification && diffResult.getChanges() > 0) {
-                    notificationService.execute(discographyResult);
-                }
-
-                return discographyResult;
+            // notify
+            if (diffResult.getChanges() > 0) {
+                notificationService.execute(discographyResult);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
-        return null;
     }
 
-    public void equal(Band band, DiffRow<AlbumDTO> diff) {
-        log.info("equal({}, {})", band, diff);
+    public void equal(long bandId, DiffRow<AlbumDTO> diff) {
+        log.info("equal({}, {})", bandId, diff);
 
         // update record
         AlbumDTO album = diff.getOriginal().get(0);
-        if (StringUtils.isEmpty(album.getMaName())) {
-            album.setMaName(null);
-        }
         if (StringUtils.isEmpty(album.getMaType())) {
             album.setMaType(null);
+        }
+        if (StringUtils.isEmpty(album.getMaName())) {
+            album.setMaName(null);
         }
         albumService.save(album);
 
         // adjust discography
-        albumService.adjustPositions(band.getName());
+        albumService.adjustPositions(bandId);
     }
 
-    public void plus(Band band, DiffRow<AlbumDTO> diff) {
-        log.info("plus({}, {})", band, diff);
+    public void plus(long bandId, DiffRow<AlbumDTO> diff) {
+        log.info("plus({}, {})", bandId, diff);
 
         // shift all the positions below the new first position and total size
         Integer start = diff.getRevised().get(0).getPosition();
         Integer offset = diff.getRevised().size();
-        albumService.adjustPositions(band.getName(), start, offset);
+        albumService.adjustPositions(bandId, start, offset);
 
         // add
         diff.getRevised().forEach(album -> {
-            album.setBandId(band.getId());
+            album.setBandId(bandId);
             albumService.save(album);
         });
 
         // adjust discography
-        albumService.adjustPositions(band.getName());
+        albumService.adjustPositions(bandId);
     }
 
-    public void change(Band band, DiffRow<AlbumDTO> diff) {
-        log.info("change({}, {})", band, diff);
+    public void change(long bandId, DiffRow<AlbumDTO> diff) {
+        log.info("change({}, {})", bandId, diff);
 
         // shift all the positions below the new first position and total size
         Integer start = diff.getRevised().get(0).getPosition() + diff.getOriginal().size();
         Integer offset = Math.abs(diff.getOriginal().size() - diff.getRevised().size());
-        albumService.adjustPositions(band.getName(), start, offset);
+        albumService.adjustPositions(bandId, start, offset);
 
         int i = 0;
         for (; i < diff.getOriginal().size(); i++) {
@@ -133,6 +116,7 @@ public class DiscographyService {
             if (albumRevised == null) {
                 albumService.delete(albumOriginal.getId());
             }
+
             // change
             else {
                 albumOriginal.setPosition(albumRevised.getPosition());
@@ -141,7 +125,7 @@ public class DiscographyService {
                 albumOriginal.setName(albumRevised.getName());
                 albumOriginal.setYear(albumRevised.getYear());
 
-                albumOriginal.setBandId(band.getId());
+                albumOriginal.setBandId(bandId);
                 albumService.save(albumOriginal);
             }
         }
@@ -151,26 +135,23 @@ public class DiscographyService {
                 AlbumDTO albumRevised = diff.getRevised().get(i);
 
                 // plus
-                albumRevised.setBandId(band.getId());
+                albumRevised.setBandId(bandId);
                 albumService.save(albumRevised);
             }
         }
 
         // adjust discography
-        albumService.adjustPositions(band.getName());
+        albumService.adjustPositions(bandId);
     }
 
-    public void minus(Long albumId) {
-        log.info("minus({})", albumId);
-
-        // get album
-        AlbumDTO album = albumService.findById(albumId);
+    public void minus(long bandId, long albumId) {
+        log.info("minus({}, {})", bandId, albumId);
 
         // delete album
         albumService.delete(albumId);
 
         // adjust discography
-        albumService.adjustPositions(album.getBandName());
+        albumService.adjustPositions(bandId);
     }
 
 }
