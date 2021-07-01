@@ -1,4 +1,4 @@
-package it.ade.ma.api.sevice.diff.model;
+package it.ade.ma.api.sevice.diff.engine.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,8 +18,8 @@ public class DiffRow<T> {
         CHANGE
     }
 
-    DiffType type;
-    List<T> original;
-    List<T> revised;
+    private DiffType type;
+    private List<T> original;
+    private List<T> revised;
 
 }

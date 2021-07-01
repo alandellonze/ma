@@ -1,25 +1,25 @@
-package it.ade.ma.api.sevice.diff;
+package it.ade.ma.api.sevice.diff.engine;
 
 import com.github.difflib.DiffUtils;
 import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
 import com.google.common.collect.Lists;
-import it.ade.ma.api.sevice.diff.model.DiffResult;
-import it.ade.ma.api.sevice.diff.model.DiffRow;
+import it.ade.ma.api.sevice.diff.engine.model.DiffResult;
+import it.ade.ma.api.sevice.diff.engine.model.DiffRow;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.function.BiPredicate;
 
-import static it.ade.ma.api.sevice.diff.model.DiffRow.DiffType.*;
+import static it.ade.ma.api.sevice.diff.engine.model.DiffRow.DiffType.*;
 
 @Slf4j
 public abstract class AbstractDiffService<T> {
 
     private final BiPredicate<T, T> DEFAULT_EQUALIZER = Object::equals;
 
-    public BiPredicate<T, T> getEqualizer() {
+    protected BiPredicate<T, T> getEqualizer() {
         return DEFAULT_EQUALIZER;
     }
 
@@ -76,7 +76,7 @@ public abstract class AbstractDiffService<T> {
         return diffResult;
     }
 
-    private void getDeltaTextCustom(DiffResult<T> diffResult, AbstractDelta<T> delta) {
+    protected void getDeltaTextCustom(DiffResult<T> diffResult, AbstractDelta<T> delta) {
         // plus
         if (delta.getSource().getLines().size() == 0 && delta.getTarget().getLines().size() > 0) {
             plusAction(diffResult, delta.getTarget().getLines());
@@ -93,7 +93,7 @@ public abstract class AbstractDiffService<T> {
         }
     }
 
-    private void equalAction(DiffResult<T> diffResult, List<T> original) {
+    protected void equalAction(DiffResult<T> diffResult, List<T> original) {
         List<DiffRow<T>> diffs = diffResult.getDiffs();
         for (T o : original) {
             log.debug("  {}", o);

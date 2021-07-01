@@ -1,10 +1,10 @@
 package it.ade.ma.api.sevice.mail;
 
-import it.ade.ma.api.sevice.db.model.Band;
 import it.ade.ma.api.sevice.db.model.dto.AlbumDTO;
-import it.ade.ma.api.sevice.diff.model.DiffRow;
-import it.ade.ma.api.sevice.diff.model.DiffRow.DiffType;
-import it.ade.ma.api.sevice.discography.model.DiscographyResult;
+import it.ade.ma.api.sevice.db.model.dto.BandDTO;
+import it.ade.ma.api.sevice.diff.engine.model.DiffRow;
+import it.ade.ma.api.sevice.diff.engine.model.DiffRow.DiffType;
+import it.ade.ma.api.sevice.diff.model.DiscographyResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -30,24 +30,24 @@ public class NotificationService {
     public void execute(DiscographyResult discographyResult) {
         log.info("execute({})", discographyResult);
 
-        Band band = discographyResult.getBand();
+        BandDTO bandDTO = discographyResult.getBandDTO();
         Integer changes = discographyResult.getChanges();
         List<DiffRow<AlbumDTO>> diffs = discographyResult.getAlbumDiffs();
 
-        String subject = prepareSubject(band, changes);
-        String text = prepareText(band, diffs);
+        String subject = prepareSubject(bandDTO, changes);
+        String text = prepareText(bandDTO, diffs);
 
         mailService.sendEmail(subject, text);
     }
 
-    private String prepareSubject(Band band, Integer changes) {
-        log.debug("prepareSubject({}, {})", band, changes);
+    private String prepareSubject(BandDTO bandDTO, Integer changes) {
+        log.debug("prepareSubject({}, {})", bandDTO, changes);
 
-        return band.getName() + " (" + changes + " differences)";
+        return bandDTO.getName() + " (" + changes + " differences)";
     }
 
-    private String prepareText(Band band, List<DiffRow<AlbumDTO>> diffs) {
-        log.debug("prepareText({}, {})", band, diffs);
+    private String prepareText(BandDTO bandDTO, List<DiffRow<AlbumDTO>> diffs) {
+        log.debug("prepareText({}, {})", bandDTO, diffs);
 
         StringBuilder document = new StringBuilder();
 
@@ -106,7 +106,7 @@ public class NotificationService {
         document.append("</table>");
 
         // add original source
-        String url = String.format(maMetalArchivesUrl, band.getMaKey());
+        String url = String.format(maMetalArchivesUrl, bandDTO.getMaKey());
         document.append("<br />").append("<b>source</b>: ").append(url);
 
         return document.toString();

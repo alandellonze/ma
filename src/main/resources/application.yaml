@@ -33,8 +33,6 @@ spring:
       format_sql: true
     show-sql: false
 
-
-
   # mail
   mail:
     host: "smtp.sendgrid.net"

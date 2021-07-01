@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
+import static it.ade.ma.api.constants.AlbumStatus.NONE;
+import static javax.persistence.GenerationType.IDENTITY;
+
 @Data
 @Entity
 @NoArgsConstructor
@@ -14,7 +17,7 @@ import javax.persistence.*;
 public class Album {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -28,7 +31,7 @@ public class Album {
     private Integer year;
 
     @Enumerated
-    private AlbumStatus status = AlbumStatus.NONE;
+    private AlbumStatus status = NONE;
 
     private String maType;
     private Integer maTypeCount;

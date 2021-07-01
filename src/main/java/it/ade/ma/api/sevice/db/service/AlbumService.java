@@ -23,33 +23,37 @@ public class AlbumService {
     private final AlbumRepository albumRepository;
 
     public List<AlbumDTO> findAllByBandId(long bandId) {
-        List<Album> albums = albumRepository.findAllByBandIdOrderByPositionAsc(bandId);
-        return albums.stream().map(this::convertToDTO).collect(Collectors.toList());
+        return albumRepository.findAllByBandIdOrderByPosition(bandId)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    public AlbumDTO findById(Long id) {
-        Optional<Album> album = albumRepository.findById(id);
-        return album.map(this::convertToDTO).orElse(null);
+    public Optional<AlbumDTO> findById(Long id) {
+        return albumRepository.findById(id)
+                .map(this::convertToDTO);
     }
 
     public void save(AlbumDTO albumDTO) {
         Album album = convertToEntity(albumDTO);
-        albumRepository.save(album);
+        album = albumRepository.save(album);
+        log.info("new album saved with id: {}", album.getId());
     }
 
-    public void delete(Long id) {
+    public void delete(long id) {
         albumRepository.deleteById(id);
+        log.info("album with id: {} successfully deleted", id);
     }
 
     public void adjustPositions(long bandId) {
         adjustPositions(bandId, 1, 0);
     }
 
-    public void adjustPositions(long bandId, Integer start, Integer offset) {
+    public void adjustPositions(long bandId, int start, int offset) {
         log.info("adjustPositions({}, {}, {})", bandId, start, offset);
 
         // get all the Albums
-        List<Album> albums = albumRepository.findAllByBandIdOrderByPositionAsc(bandId);
+        List<Album> albums = albumRepository.findAllByBandIdOrderByPosition(bandId);
 
         // adjust position
         for (int i = start - 1; i < albums.size(); i++) {
@@ -66,22 +70,16 @@ public class AlbumService {
     // MAPPERS
 
     private AlbumDTO convertToDTO(Album album) {
-        if (album != null) {
-            AlbumDTO albumDTO = albumMapper.toAlbumDTO(album);
-            albumDTO.setBandId(album.getBand().getId());
-            albumDTO.setBandName(album.getBand().getName());
-            return albumDTO;
-        }
-        return null;
+        AlbumDTO albumDTO = albumMapper.toAlbumDTO(album);
+        albumDTO.setBandId(album.getBand().getId());
+        albumDTO.setBandName(album.getBand().getName());
+        return albumDTO;
     }
 
     private Album convertToEntity(AlbumDTO albumDTO) {
-        if (albumDTO != null) {
-            Album album = albumMapper.toAlbum(albumDTO);
-            album.setBand(new Band(albumDTO.getBandId(), albumDTO.getBandName(), null));
-            return album;
-        }
-        return null;
+        Album album = albumMapper.toAlbum(albumDTO);
+        album.setBand(new Band(albumDTO.getBandId(), albumDTO.getBandName(), null));
+        return album;
     }
 
 }

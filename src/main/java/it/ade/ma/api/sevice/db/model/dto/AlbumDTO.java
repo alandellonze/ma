@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 
 import java.util.Objects;
 
+import static it.ade.ma.api.constants.AlbumStatus.NONE;
+
 @Data
 @NoArgsConstructor
 public class AlbumDTO {
@@ -22,7 +24,7 @@ public class AlbumDTO {
     private Integer typeCount;
     private String name;
     private Integer year;
-    private AlbumStatus status = AlbumStatus.NONE;
+    private AlbumStatus status = NONE;
 
     private String maType;
     private Integer maTypeCount;

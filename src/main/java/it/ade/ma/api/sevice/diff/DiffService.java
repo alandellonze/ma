@@ -1,12 +1,14 @@
-package it.ade.ma.api.sevice.discography;
+package it.ade.ma.api.sevice.diff;
 
 import it.ade.ma.api.sevice.covers.CoversService;
-import it.ade.ma.api.sevice.db.model.Band;
 import it.ade.ma.api.sevice.db.model.dto.AlbumDTO;
-import it.ade.ma.api.sevice.db.repository.BandRepository;
+import it.ade.ma.api.sevice.db.model.dto.BandDTO;
 import it.ade.ma.api.sevice.db.service.AlbumService;
-import it.ade.ma.api.sevice.diff.model.DiffResult;
-import it.ade.ma.api.sevice.discography.model.DiffResponse;
+import it.ade.ma.api.sevice.db.service.BandService;
+import it.ade.ma.api.sevice.diff.engine.model.DiffResult;
+import it.ade.ma.api.sevice.diff.model.DiffResponse;
+import it.ade.ma.api.sevice.diff.model.DiscographyResult;
+import it.ade.ma.api.sevice.mail.NotificationService;
 import it.ade.ma.api.sevice.mp3.MP3Service;
 import it.ade.ma.api.sevice.path.PathUtil;
 import it.ade.ma.api.sevice.ripper.RipperService;
@@ -26,62 +28,92 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DiffService {
 
-    private final BandRepository bandRepository;
+    private final BandService bandService;
     private final AlbumService albumService;
 
     private final RipperService ripperService;
     private final CoversService coversService;
     private final MP3Service mp3Service;
 
-    private final AlbumDiffService albumDiffService;
+    private final AlbumDTODiffService albumDTODiffService;
     private final StringDiffService stringDiffService;
 
-    public DiffResponse execute(String bandName) {
-        log.info("execute({})", bandName);
+    private final NotificationService notificationService;
+
+    public void diffAll() {
+        log.info("executeAll()");
+
+        bandService.findAllForWeb()
+                .forEach(this::diffAll);
+    }
+
+    // FIXME
+    private void diffAll(BandDTO bandDTO) {
+        log.info("diffAll({})", bandDTO);
+
+        try {
+            // get Albums from db
+            List<AlbumDTO> albumsFromDB = albumService.findAllByBandId(bandDTO.getId());
+
+            // calculate differences
+            DiffResult<AlbumDTO> diffResult = diffsWeb(bandDTO.getMaKey(), albumsFromDB);
+            DiscographyResult discographyResult = new DiscographyResult(bandDTO, diffResult.getChanges(), diffResult.getDiffs());
+
+            // notify
+            if (diffResult.getChanges() > 0) {
+                notificationService.execute(discographyResult);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public DiffResponse diffByBandId(long bandId) {
+        log.info("diffByBandId({})", bandId);
 
         // get Band from db
-        Optional<Band> bandOpt = bandRepository.findByName(bandName);
-        if (bandOpt.isEmpty()) {
-            log.info("band with name {} wasn't found", bandName);
+        Optional<BandDTO> bandDTOOpt = bandService.findById(bandId);
+        if (bandDTOOpt.isEmpty()) {
+            log.info("band with id: {} wasn't found", bandId);
             return null;
         }
-        Band band = bandOpt.get();
+        BandDTO bandDTO = bandDTOOpt.get();
 
         DiffResponse diffResponse = new DiffResponse();
-        diffResponse.setBand(band);
+        diffResponse.setBandDTO(bandDTO);
 
         // get Albums from db
-        List<AlbumDTO> albums = albumService.findAllByBandId(band.getId());
-        log.info("{} albums found on db for band {}", albums.size(), band.getName());
+        List<AlbumDTO> albums = albumService.findAllByBandId(bandDTO.getId());
+        log.info("{} albums found on db for band: {}", albums.size(), bandDTO.getName());
 
         // FIXME search MP3 and Covers for each Albums
         mp3Service.findAndUpdate(albums);
         coversService.findAndUpdate(albums);
 
         // diffs from web
-        diffResponse.setAlbumDiff(diffsWeb(band.getMaKey(), albums));
+        diffResponse.setAlbumDiff(diffsWeb(bandDTO.getMaKey(), albums));
 
         // diffs covers
-        diffResponse.setCoversDiff(diffsCovers(band.getName(), albums));
+        diffResponse.setCoversDiff(diffsCovers(bandDTO.getName(), albums));
 
         // diffs mp3
-        diffResponse.setMp3Diff(diffsMP3(band.getName(), albums));
+        diffResponse.setMp3Diff(diffsMP3(bandDTO.getName(), albums));
 
         // diffs scans
-        diffResponse.setScansDiff(diffsScans(band.getName(), albums));
+        diffResponse.setScansDiff(diffsScans(bandDTO.getName(), albums));
 
         return diffResponse;
     }
 
     @SneakyThrows
-    DiffResult<AlbumDTO> diffsWeb(Long maKey, List<AlbumDTO> albums) {
+    private DiffResult<AlbumDTO> diffsWeb(Long maKey, List<AlbumDTO> albums) {
         log.info("diffsWeb({}, {})", maKey, albums.size());
 
         // get album from web
         List<AlbumDTO> albumsFromWeb = Objects.isNull(maKey) ? Collections.emptyList() : ripperService.execute(maKey);
 
         // diff album
-        return albumDiffService.execute(albums, albumsFromWeb);
+        return albumDTODiffService.execute(albums, albumsFromWeb);
     }
 
     @SneakyThrows

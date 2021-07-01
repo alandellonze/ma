@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -60,26 +61,35 @@ public class MP3Service {
         }
     }
 
-    public void check(Long albumId) throws Exception {
+    public void check(Long albumId) throws RuntimeException {
         log.info("check({})", albumId);
 
-        // get the Album
-        AlbumDTO album = albumService.findById(albumId);
+        try {
+            // get the Album
+            Optional<AlbumDTO> albumOpt = albumService.findById(albumId);
+            if (albumOpt.isEmpty()) {
+                log.info("album with id: {} wasn't found", albumId);
+            } else {
+                AlbumDTO albumDTO = albumOpt.get();
 
-        // adjust all the mp3 files
-        Map<String, List<String>> mp3FileNameMap = pathUtil.getMP3FileNameMap(album);
-        log.info("found {} cd for '{}'", mp3FileNameMap.size(), album);
-        for (Map.Entry<String, List<String>> entry : mp3FileNameMap.entrySet()) {
-            // create the id3v2 template
-            String cdName = entry.getKey();
-            ID3v2 id3v2TagTemplate = mp3Util.createID3v2Template(cdName, album);
+                // adjust all the mp3 files
+                Map<String, List<String>> mp3FileNameMap = pathUtil.getMP3FileNameMap(albumDTO);
+                log.info("found {} cd for '{}'", mp3FileNameMap.size(), albumDTO);
+                for (Map.Entry<String, List<String>> entry : mp3FileNameMap.entrySet()) {
+                    // create the id3v2 template
+                    String cdName = entry.getKey();
+                    ID3v2 id3v2TagTemplate = mp3Util.createID3v2Template(cdName, albumDTO);
 
-            // handle files
-            List<String> mp3FileNames = entry.getValue();
-            log.info("found {} files for '{}'", mp3FileNames.size(), id3v2TagTemplate.getAlbum());
-            for (int i = 0; i < mp3FileNames.size(); i++) {
-                handleMp3(mp3FileNames.get(i), i + 1, id3v2TagTemplate);
+                    // handle files
+                    List<String> mp3FileNames = entry.getValue();
+                    log.info("found {} files for '{}'", mp3FileNames.size(), id3v2TagTemplate.getAlbum());
+                    for (int i = 0; i < mp3FileNames.size(); i++) {
+                        handleMp3(mp3FileNames.get(i), i + 1, id3v2TagTemplate);
+                    }
+                }
             }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -284,6 +294,8 @@ public class MP3Service {
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ACOUSTIC\\)", " (ACOUSTIC VERSION)");
 
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(ALTERNATIVE MIX\\)", " (ALTERNATIVE MIX)");
+
+        normalizedTitle = normalizedTitle.replaceAll("(?i) \\(REMIX\\)", " (REMIX)");
 
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(APOCALYPSE VERSION\\)", " (APOCALYPSE VERSION)");
         normalizedTitle = normalizedTitle.replaceAll("(?i) \\(APOCALYPSE\\)", " (APOCALYPSE VERSION)");

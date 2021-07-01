@@ -6,14 +6,17 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface BandRepository extends CrudRepository<Band, Long> {
 
     List<Band> findAllByMaKeyNotNullOrderByName();
 
-    @Query(nativeQuery = true, value = "SELECT * FROM Band WHERE UPPER(UNACCENT(name)) = UPPER(UNACCENT(:name))")
-    Optional<Band> findByName(String name);
+    @Query(nativeQuery = true, value = ""
+            + " SELECT *"
+            + " FROM Band"
+            + " WHERE UPPER(UNACCENT(name)) LIKE '%' || UPPER(TRIM(UNACCENT(:name)) || '%')"
+            + " ORDER BY name, id")
+    List<Band> findAllByName(String name);
 
 }

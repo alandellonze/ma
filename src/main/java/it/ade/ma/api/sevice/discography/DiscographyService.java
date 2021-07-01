@@ -1,68 +1,19 @@
 package it.ade.ma.api.sevice.discography;
 
-import it.ade.ma.api.sevice.covers.CoversService;
-import it.ade.ma.api.sevice.db.model.Band;
 import it.ade.ma.api.sevice.db.model.dto.AlbumDTO;
-import it.ade.ma.api.sevice.db.repository.BandRepository;
 import it.ade.ma.api.sevice.db.service.AlbumService;
-import it.ade.ma.api.sevice.diff.model.DiffResult;
-import it.ade.ma.api.sevice.diff.model.DiffRow;
-import it.ade.ma.api.sevice.discography.model.DiscographyResult;
-import it.ade.ma.api.sevice.mail.NotificationService;
-import it.ade.ma.api.sevice.mp3.MP3Service;
+import it.ade.ma.api.sevice.diff.engine.model.DiffRow;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DiscographyService {
 
-    private final BandRepository bandRepository;
     private final AlbumService albumService;
-
-    private final DiffService diffService;
-    private final CoversService coversService;
-    private final MP3Service mp3Service;
-    private final NotificationService notificationService;
-
-    public void adjustPositions() {
-        log.info("adjustPositions()");
-
-        List<Band> bands = bandRepository.findAllByMaKeyNotNullOrderByName();
-        bands.forEach(band -> albumService.adjustPositions(band.getId()));
-    }
-
-    public void executeAll() {
-        log.info("executeAll()");
-
-        bandRepository.findAllByMaKeyNotNullOrderByName()
-                .forEach(this::executeAll);
-    }
-
-    private void executeAll(Band band) {
-        log.info("execute({})", band);
-
-        try {
-            // get Albums from db
-            List<AlbumDTO> albumsFromDB = albumService.findAllByBandId(band.getId());
-
-            // calculate differences
-            DiffResult<AlbumDTO> diffResult = diffService.diffsWeb(band.getMaKey(), albumsFromDB);
-            DiscographyResult discographyResult = new DiscographyResult(band, diffResult.getChanges(), diffResult.getDiffs());
-
-            // notify
-            if (diffResult.getChanges() > 0) {
-                notificationService.execute(discographyResult);
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-    }
 
     public void equal(long bandId, DiffRow<AlbumDTO> diff) {
         log.info("equal({}, {})", bandId, diff);
@@ -85,8 +36,8 @@ public class DiscographyService {
         log.info("plus({}, {})", bandId, diff);
 
         // shift all the positions below the new first position and total size
-        Integer start = diff.getRevised().get(0).getPosition();
-        Integer offset = diff.getRevised().size();
+        int start = diff.getRevised().get(0).getPosition();
+        int offset = diff.getRevised().size();
         albumService.adjustPositions(bandId, start, offset);
 
         // add
