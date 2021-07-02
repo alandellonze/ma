@@ -31,7 +31,7 @@ public abstract class AbstractDiffService<T> {
 
         // if there are no data from revisited
         if (revised.isEmpty()) {
-            equalAction(diffResult, original);
+            emptyAction(diffResult, original);
         }
 
         // otherwise, compare the lists
@@ -91,6 +91,10 @@ public abstract class AbstractDiffService<T> {
         else if (delta.getSource().getLines().size() > 0 && delta.getTarget().getLines().size() > 0) {
             changeAction(diffResult, delta.getSource().getLines(), delta.getTarget().getLines());
         }
+    }
+
+    protected void emptyAction(DiffResult<T> diffResult, List<T> original) {
+        equalAction(diffResult, original);
     }
 
     protected void equalAction(DiffResult<T> diffResult, List<T> original) {

@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "ma.path")
 public class PathConfiguration {
 
-    private String main;
     private String tmp;
     private String covers;
     private String mp3;

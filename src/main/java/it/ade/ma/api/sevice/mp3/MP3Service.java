@@ -1,5 +1,6 @@
 package it.ade.ma.api.sevice.mp3;
 
+import com.google.common.collect.Streams;
 import com.mpatric.mp3agic.ID3v1;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.Mp3File;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -29,7 +31,9 @@ public class MP3Service {
     private final MP3Util mp3Util;
 
     public List<String> getAllMP3s(String bandName) throws IOException {
-        return pathUtil.getAllMP3s(bandName)
+        Stream<String> mp3Stream = pathUtil.getAllMP3s(bandName);
+        Stream<String> tmpStream = pathUtil.getAllTmpMP3s(bandName);
+        return Streams.concat(mp3Stream, tmpStream)
                 .collect(Collectors.toList());
     }
 
@@ -50,7 +54,7 @@ public class MP3Service {
 
                 // look into tmp folder
                 else {
-                    path = pathUtil.generateTMPName(album);
+                    path = pathUtil.generateTMPNameFull(album);
                     exists = pathUtil.fileExists(path);
                     status = exists ? MP3Status.TMP : MP3Status.NOT_PRESENT;
                 }

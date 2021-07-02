@@ -1,7 +1,6 @@
 package it.ade.ma.api.sevice.db.model.dto;
 
 import it.ade.ma.api.constants.AlbumStatus;
-import it.ade.ma.api.constants.CoverStatus;
 import it.ade.ma.api.constants.MP3Status;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,7 +30,6 @@ public class AlbumDTO {
     private String maName;
 
     private MP3Status mp3Status = MP3Status.NOT_PRESENT;
-    private CoverStatus coverStatus = CoverStatus.NOT_PRESENT;
 
     public AlbumDTO(Integer position, String type, Integer typeCount, String name, Integer year) {
         this.position = position;

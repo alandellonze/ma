@@ -48,11 +48,10 @@ ma:
 
   # path (for mp3, covers, etc...)
   path:
-    main: "/Users/ade/Downloads/- MISC/music/"
-    tmp: "- tmp/"
-    covers: "covers/"
-    mp3: "mp3/"
-    scans: "scans/"
+    tmp: "/Users/ade/Downloads/- MISC/music/- tmp"
+    covers: "/Users/ade/Downloads/- MISC/music/covers"
+    mp3: "/Users/ade/Downloads/- MISC/music/mp3"
+    scans: "/Users/ade/Downloads/- MISC/music/scans"
 
   # mail
   mail:

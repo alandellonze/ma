@@ -86,9 +86,8 @@ public class DiffService {
         List<AlbumDTO> albums = albumService.findAllByBandId(bandDTO.getId());
         log.info("{} albums found on db for band: {}", albums.size(), bandDTO.getName());
 
-        // FIXME search MP3 and Covers for each Albums
+        // FIXME to be removed: search MP3 presence for each Albums
         mp3Service.findAndUpdate(albums);
-        coversService.findAndUpdate(albums);
 
         // diffs from web
         diffResponse.setAlbumDiff(diffsWeb(bandDTO.getMaKey(), albums));
